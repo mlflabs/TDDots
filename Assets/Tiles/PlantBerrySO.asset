@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d038b3f0d1981e4fb65231cac266365, type: 3}
+  m_Name: PlantBerrySO
+  m_EditorClassIdentifier: 
+  walkSpeedMultiplier:
+    value: 15360
+  CanBuild: 0
+  CanGrow: 0
+  CanReproduce: 1
+  level1:
+    level: 1
+    growthPoints: 5
+    yieldReceived: 0
+    sprite: {fileID: -5840972274582744104, guid: fb19b5fbfec4deb428773178b899cd7a, type: 3}
+  level2:
+    level: 2
+    growthPoints: 10
+    yieldReceived: 5
+    sprite: {fileID: 3442116038242085032, guid: fb19b5fbfec4deb428773178b899cd7a, type: 3}
+  level3:
+    level: 3
+    growthPoints: 20
+    yieldReceived: 25
+    sprite: {fileID: 8635903978712429406, guid: fb19b5fbfec4deb428773178b899cd7a, type: 3}
+  level4:
+    level: 4
+    growthPoints: 50
+    yieldReceived: 50
+    sprite: {fileID: 6612842843856697754, guid: fb19b5fbfec4deb428773178b899cd7a, type: 3}

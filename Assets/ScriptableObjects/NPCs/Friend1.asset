@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34b1026f5caa4454e94af7009dde0397, type: 3}
+  m_Name: Friend1
+  m_EditorClassIdentifier: 
+  userId: 0
+  hunger: {fileID: 11400000, guid: 9bdcd05d3f5c7984aa81fa1d421f448d, type: 2}
+  play: {fileID: 11400000, guid: 0b6562e3495e60d438d0aab8c321bd3b, type: 2}
+  rest: {fileID: 11400000, guid: 032d4372a6b8de043a18fd204afa24dd, type: 2}
+  wander: {fileID: 11400000, guid: 8bfa9860f76eb5440aa4e9ce296787f8, type: 2}
+  thirst: {fileID: 11400000, guid: 9edf9d5cca40bae4091c0f3cf634fa26, type: 2}

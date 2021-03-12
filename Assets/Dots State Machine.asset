@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f26f7371c5697824487e835acb6b9a03, type: 3}
+  m_Name: Dots State Machine
+  m_EditorClassIdentifier: 
+  m_GraphModel:
+    id: 0
+  m_CompiledGraph:
+    DisplayName: 
+    Definition:
+      Assets: []
+      ExposedObjects: []
+      InputTargets: []
+      TopologyDefinition:
+        NodeCreations: []
+        Connections: []
+        Values: []
+        Inputs: []
+        Outputs: []
+        PortArrays: []
+        States: []
+        Transitions: []
+        ConditionFragments: []
+        IsStateMachine: 0
+      TypesUsed: []
+    CompiledDependencies: []
+  references:
+    version: 1
+    00000000:
+      type: {class: StateMachineModel, ns: Unity.Animation.Model, asm: Unity.Animation.Editor}
+      data:
+        m_AssetModel: {fileID: 11400000}
+        m_GraphNodeModels: []
+        m_EdgeModels: []
+        m_BadgeModels: []
+        m_GraphEdgeModels: []
+        m_PolymorphicEdgeModels: []
+        m_StickyNoteModels: []
+        m_GraphStickyNoteModels: []
+        m_PlacematModels: []
+        m_GraphPlacematModels: []
+        m_GraphVariableModels: []
+        m_GraphPortalModels: []
+        m_StencilTypeName: Unity.Animation.Editor.AnimationStateMachineStencil, Unity.Animation.Editor,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializedStencil:
+          id: 1
+        m_Name: Dots State Machine
+        InputComponentBindings: []
+    00000001:
+      type: {class: , ns: , asm: }
