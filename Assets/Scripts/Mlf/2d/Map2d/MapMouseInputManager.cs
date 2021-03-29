@@ -1,4 +1,7 @@
+using Mlf.Grid2d;
+using Mlf.Grid2d.Ecs;
 using Mlf.Tiles2d;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -38,6 +41,23 @@ namespace Mlf.Map2d
 
         private void Update()
         {
+            if (highlightTileCell && Input.GetMouseButtonDown(0))
+            {
+                //are we on map
+                Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+                Cell c = GridSystem.getCell(mousePos);
+
+                if (!c.isDefault())
+                {
+                    Debug.LogWarning(c.print());
+                }
+                else
+                {
+                    Debug.LogWarning($"Didn't get cell MousePos: {mousePos}, {c.pos}");
+                }
+            }
+
 
             if (onClickPrintTileData)
                 if (Input.GetMouseButtonDown(0))
@@ -52,14 +72,16 @@ namespace Mlf.Map2d
 
                     if (data != null)
                     {
-                        Debug.Log($"TileData: {data.name}, Walkable: {data.walkSpeed}, Pos: {gridpos}");
+                        Debug.LogWarning($"TileData: {data.name}, Walkable: {data.walkSpeed}, Pos: {gridpos}");
                     }
                     else
                     {
-                        Debug.Log($"No Tile found pos: {gridpos}");
+                        Debug.LogWarning($"No Tile found pos: {gridpos}");
                     }
 
                 }
+
+            
         }
 
 

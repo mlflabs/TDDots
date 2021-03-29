@@ -3,6 +3,7 @@ using Mlf.Brains.Actions;
 using Mlf.Grid2d;
 using Mlf.Grid2d.Ecs;
 using Mlf.Map2d;
+using Mlf.Npc;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
@@ -16,6 +17,11 @@ namespace Mlf.Brains.States
     //just make the default system run action system
     public struct HungerDefaultSystemTag : IComponentData { }
 
+
+
+    /// <summary>
+    /// State Selection 
+    /// </summary>
     [UpdateBefore(typeof(StateSelectionSystem))]
     class HungerManagementSystem : SystemBase
     {
@@ -78,6 +84,7 @@ namespace Mlf.Brains.States
                    }
                    else if (completeTag.progress == StateCompleteProgress.choosingNewState)
                    {
+                       Debug.LogWarning($"HungerState Scores::: {state.value}, Threshold:: {data.hungerThreshold}");
                        if (state.skipNextStateSelection)
                        {
                            state.skipNextStateSelection = false;
@@ -89,6 +96,7 @@ namespace Mlf.Brains.States
                        }
                        else
                        {
+                           Debug.LogWarning($"Hunger State Value:: {state.value}");
                            score.value = ScoreUtils.calculateDefaultScore(state.value);
                            if (score.value > currentState.score)
                            {
@@ -111,26 +119,35 @@ namespace Mlf.Brains.States
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+    /// <summary>
+    /// State Progress Begins Here
+    /// </summary>
     public enum HungerStates : byte
     {
-        FindFoodSource, RequestFoodSource, GoToFoodSource, Eat,
+        FindFoodSource, RequestFoodSource, CheckIfRequestFoodSourceSuccessful, GoToFoodSource, Eat,
         NoFoodSource, Finished
     }
 
-    [UpdateBefore(typeof(MapItemManagerSystem))]
+    [UpdateBefore(typeof(NpcOwnershipSystem))]
     class HungerStateSystem : SystemBase
     {
-        //protected EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
         private EventSystem eventSystem;
 
         protected override void OnCreate()
         {
             base.OnCreate();
-
-            //m_EndSimulationEcbSystem = World
-            //    .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-
-            //eventSystem = World.GetExistingSystem<LateSimulationEventSystem>();
             eventSystem = World.DefaultGameObjectInjectionWorld
                 .GetOrCreateSystem<EventSystem>();
         }
@@ -142,8 +159,7 @@ namespace Mlf.Brains.States
 
             var deltaTime = Time.DeltaTime;
             var writer = eventSystem.CreateEventWriter<AskForItemOwnershipEvent>();
-            var maps = GridSystem.Maps;
-            var groundTypeReferences = GridSystem.GroundTypeReferences;
+            //var groundTypeReferences = GridSystem.GroundTypeReferences;
 
 
 
@@ -152,20 +168,32 @@ namespace Mlf.Brains.States
 
             for (int m = 0; m < mapIds.Count; m++)
             {
-                int _id = mapIds[m].mapId;
-                GridDataStruct map = maps[mapIds[m].mapId];
-                NativeHashMap<int, GridItem> plantItems;
 
-                if (MapItemManagerSystem.mainMapId == _id)
-                    plantItems = MapItemManagerSystem.MainMapPlantItems;
+                GridDataStruct map;
+                NativeArray<Cell> cells;
+                NativeHashMap<int, PlantItem> plantItems;
+
+                if (mapIds[m].type == MapType.main)
+                {
+                    map = GridSystem.MainMap;
+                    cells = GridSystem.MainMapCells;
+                    plantItems = MapPlantManagerSystem.MainMapPlantItems;
+                }
                 else
-                    continue;
+                {
+                    continue;//no secondary items setup yet
+                    map = GridSystem.SecondaryMap;
+                    cells = GridSystem.SecondaryMapCells;
+                    plantItems = MapPlantManagerSystem.MainMapPlantItems;////change to secondary
+                }
+
 
                 Entities
                     .WithSharedComponentFilter(mapIds[m])
                     .WithName("DefaultHungerStateSystem")
                     .WithAll<HungerDefaultSystemTag>()
                     .WithReadOnly(plantItems)
+                    .WithReadOnly(cells)
                     .ForEach((
                             Entity entity,
                             ref HungerStateCurrent hungerStateCurrent,
@@ -173,104 +201,64 @@ namespace Mlf.Brains.States
                             ref MoveActionData moveActionData,
                             ref CurrentBrainState currentState,
                             //ref MapItemOwned mapItemOwned,
-                            //in NpcData npcData,
+                            ref NpcData npcData,
                             in LocalToWorld transform) =>
                     {
-                        //Debug.Log($"Wander State: {wanderState.state} Finished: {completeProgressData.finished}");
                         if (hungerStateCurrent.state == HungerStates.FindFoodSource)
                         {
-
                             Debug.Log($"Finding Food {hungerStateCurrent.state}");
                             int2 currentMapPosition = map.getGridPosition(transform.Position);
-                            moveActionData.reset();
+                            PathData path;
+                            int itemIndex = FindFoodSpot(currentMapPosition,
+                                                        in plantItems,
+                                                        in map,
+                                                        in cells,
+                                                        out path);
 
-
-                            PathData path = new PathData();
-                            int currentLowerstId = -1;
-                            while (!path.hasPath())
+                            if (itemIndex > -1)
                             {
-                                NativeList<int> checking = new NativeList<int>(Allocator.Temp);
-                                var keys = plantItems.GetKeyArray(Allocator.Temp);
-                                checking.CopyFrom(keys);
-
-                                //find the closes object, pseudal test
-                                float lowest = int.MaxValue;
-
-                                int lowestCheckingIndex = 0;
-                                float current;
-
-                                for (int i = 0; i < checking.Length; i++)
-                                {
-                                    current = math.distance(currentMapPosition,
-                                                            plantItems[checking[i]].pos);
-                                    if (current < lowest && plantItems[checking[i]].currentOwner == 0)
-                                    {
-                                        lowest = current;
-                                        currentLowerstId = checking[i];
-                                        lowestCheckingIndex = i;
-                                    }
-                                }
-
-
-                                if (currentLowerstId == -1)
-                                {
-                                    Debug.Log($"Couldn't find food source");
-
-                                    hungerStateCurrent.state = HungerStates.NoFoodSource;
-                                    return;
-                                    //TODO show a negative thing, move state to higher number
-                                }
-
-                                //remove the selected, so not checked again
-                                Debug.Log($"Array index: {currentLowerstId}, length: {checking.Length}");
-                                checking.RemoveAt(lowestCheckingIndex);
-
-
-
-                                //see if we have a path
-                                path = UtilsPath.findPath(in currentMapPosition,
-                                                          plantItems[currentLowerstId].pos,
-                                                          in groundTypeReferences,
-                                                          in map);
-
-                            }//while
-
-
-                            writer.Write(new AskForItemOwnershipEvent
+                                hungerStateCurrent.state = HungerStates.RequestFoodSource;
+                                hungerStateCurrent.itemPosIndex = itemIndex;
+                                hungerStateCurrent.itemType = ItemType.plant;
+                                //hungerStateCurrent.path = path;
+                            }
+                            else
                             {
-                                mapId = map.id,
-                                indexPos = currentLowerstId,
-                                ////////userId = npcData.userId,
-                                entity = entity
-                            });
-                            /////////Debug.Log($"Asked for item ownership from: {npcData.userId}");
-                            hungerStateCurrent.state = HungerStates.RequestFoodSource;
-                            hungerStateCurrent.itemId = currentLowerstId;
-                            hungerStateCurrent.path = path;
+                                //we didn't find path
+                                hungerStateCurrent.state = HungerStates.NoFoodSource;
+                                //TODO show a negative thing, move state to higher number
+                            }
+
+
 
                         } // state  = 0
                         else if (hungerStateCurrent.state == HungerStates.RequestFoodSource)
                         {
                             Debug.Log($"Requesting Food {hungerStateCurrent.state}");
-                           ///////// Debug.Log($"Checking if we have ownership:: {npcData.userId} ");
-                            //Did we get ownership
-                           /* if (plantItems[hungerStateCurrent.itemId].currentOwner == npcData.userId)
+
+
+                            //TODO: add other resource types
+                            writer.Write(new AskForItemOwnershipEvent
                             {
-                                Debug.Log($"Got ownership of item:: {hungerStateCurrent.itemId}");
-                                moveActionData.loadPath(
-                                    in hungerStateCurrent.path,
-                                    in map.gridRef.Value.cells[map.getIndex(plantItems[hungerStateCurrent.itemId].pos)].pos,
-                                    in map);
+                                map = map.mapType,
+                                indexPos = hungerStateCurrent.itemPosIndex,
+                                userId = npcData.userId,
+                                entity = entity
+                            });
+                            hungerStateCurrent.state = HungerStates.RequestFoodSource;
+                        }
+                        else if (hungerStateCurrent.state == HungerStates.CheckIfRequestFoodSourceSuccessful)
+                        {
+                            if( plantItems[hungerStateCurrent.itemPosIndex].currentOwner == npcData.userId)
+                            {
+                                npcData.itemOwned = hungerStateCurrent.itemPosIndex;
+                                npcData.itemType = hungerStateCurrent.itemType;
                                 hungerStateCurrent.state = HungerStates.GoToFoodSource;
                             }
                             else
                             {
-                                Debug.Log($"Didn't get ownership, search for another item");
                                 hungerStateCurrent.state = HungerStates.FindFoodSource;
-                                moveActionData.reset();
                             }
-
-                            */
                         }
                         else if (hungerStateCurrent.state == HungerStates.GoToFoodSource)
                         {
@@ -307,11 +295,72 @@ namespace Mlf.Brains.States
 
                     }).Schedule();
 
-                this.eventSystem
-                    .AddJobHandleForProducer<AskForItemOwnershipEvent>(Dependency);
+                eventSystem.AddJobHandleForProducer<AskForItemOwnershipEvent>(Dependency);
             }
 
 
+        }
+
+        public static int FindFoodSpot(
+            in int2 currentMapPosition,
+            in NativeHashMap<int, PlantItem> plantItems,
+            in GridDataStruct map,
+            in NativeArray<Cell> cells,
+            out PathData path)
+        {
+            
+            
+           //moveActionData.reset();
+
+
+            path = new PathData();
+            int currentLowerstId = -1;
+            while (!path.hasPath())
+            {
+                NativeList<int> checking = new NativeList<int>(Allocator.Temp);
+                var keys = plantItems.GetKeyArray(Allocator.Temp);
+                checking.CopyFrom(keys);
+
+                //find the closes object, pseudal test
+                float lowest = int.MaxValue;
+
+                int lowestCheckingIndex = 0;
+                float current;
+
+                for (int i = 0; i < checking.Length; i++)
+                {
+                    current = math.distance(currentMapPosition,
+                                            plantItems[checking[i]].pos);
+                    if (current < lowest && plantItems[checking[i]].currentOwner < 1)
+                    {
+                        lowest = current;
+                        currentLowerstId = checking[i];
+                        lowestCheckingIndex = i;
+                    }
+                }
+
+
+                if (currentLowerstId == -1)
+                {
+                    Debug.Log($"Couldn't find food source");
+                    return -1;
+                    
+                }
+
+                //remove the selected, so not checked again
+                Debug.Log($"Array index: {currentLowerstId}, length: {checking.Length}");
+                checking.RemoveAt(lowestCheckingIndex);
+
+
+
+                //see if we have a path
+                path = UtilsPath.findPath(in currentMapPosition,
+                                          plantItems[currentLowerstId].pos,
+                                          //in groundTypeReferences,
+                                          in cells,
+                                          in map);
+            }//while
+            return currentLowerstId;
         }
     }
 }

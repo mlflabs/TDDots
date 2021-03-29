@@ -177,23 +177,30 @@ namespace Mlf.Brains.Actions
 
         protected override void OnUpdate()
         {
-            //TODO here we could just use a tag to see if array updated, timestamp
-            NativeArray<GridDataStruct> maps = GridSystem.Maps;
-
-            //grid = Grid;
-            //var gridSize = GridSystem.gridMapSize;
+            //Debug.Log("Move000000000000000000000");
             float deltaTime = Time.DeltaTime;
             float distanceBuffer = 0.2f;
 
             List<MapComponentShared> mapIds = new List<MapComponentShared>();
-            var groundTypeReferences = GridSystem.GroundTypeReferences;
+            //var groundTypeReferences = GridSystem.GroundTypeReferences;
             EntityManager.GetAllUniqueSharedComponentData<MapComponentShared>(mapIds);
 
 
             for (int m = 0; m < mapIds.Count; m++)
             {
-                //int mapId = mapIds[m].mapId;
-                GridDataStruct map = maps[mapIds[m].mapId];
+                GridDataStruct map;
+                NativeArray<Cell> cells;
+
+                if (mapIds[m].type == MapType.main)
+                {
+                    map = GridSystem.MainMap;
+                    cells = GridSystem.MainMapCells;
+                }
+                else
+                {
+                    map = GridSystem.SecondaryMap;
+                    cells = GridSystem.SecondaryMapCells;
+                }
 
                 Dependency = Entities
                 .WithName("MoveActionSystem")
@@ -211,12 +218,13 @@ namespace Mlf.Brains.Actions
                     //are we moving
                     if (moveActionData.finished || !moveActionData.path.hasPath())
                     {
-
+                        //Debug.Log("Move1");
                         //not moving, finsiehd, no action required
                         return;
                     }
                     else if (moveActionData.nextDestinationPoint.Equals(float2.zero))
                     {
+                        //Debug.Log("Move2");
                         //doesn't seem like there could be a path with 0,0,0 mid point......
                         //Debug.Log("We have a zero destination, distance:: ");
                         //UnityEngine.Debug.Log(string.Format(math.distance(moveActionData.destination, translation.Value)));
@@ -231,10 +239,11 @@ namespace Mlf.Brains.Actions
                     }
                     else
                     {
+                        //Debug.Log("Move3");
                         //we are moving
                         //are we on the same cell as destination
                         int2 gridPosition = map.getGridPosition(in translation.Value);
-                        Cell cell = map.getCell(in gridPosition);
+                        Cell cell = map.getCell(in gridPosition, in cells);
 
                         //======================== use cell to check position, and change speed.
                         //======================== also if we changed cells, and height is different, 
@@ -251,7 +260,7 @@ namespace Mlf.Brains.Actions
                         {
 
 
-                            Debug.Log($"Walked close to point: ARE WE THERE {translation.Value} {moveActionData.destination}");
+                            //Debug.Log($"Walked close to point: ARE WE THERE {translation.Value} {moveActionData.destination}");
                             //Debug.Log($"Translation.value:: {translation.Value}, {moveActionData.nextDestinationPoint} ");
                             //Debug.Log($"Index:: {moveActionData.path.index}");
                             //Debug.Log($"Going to next Point:: {moveActionData.path.GetCurrentPoint().x}, {moveActionData.path.GetCurrentPoint().y}");
@@ -262,15 +271,15 @@ namespace Mlf.Brains.Actions
                                 //Debug.Log($" Translation:: {translation.Value.x}, {translation.Value.z} ");
                                 //not moving
                                 //finsih it
-                                Debug.Log("Reached destination, finished");
+                                //Debug.Log("Reached destination, finished");
                                 moveActionData.setFinished();
                                 return;
                             }
                             else
                             {
-                                Debug.Log($"Loading next point: {moveActionData.path.index} {moveActionData.path.GetCurrentPoint()}");
+                                //Debug.Log($"Loading next point: {moveActionData.path.index} {moveActionData.path.GetCurrentPoint()}");
                                 moveActionData.LoadNextPoint(map);
-                                Debug.Log($"Loaded point: {moveActionData.path.index}, {moveActionData.path.GetCurrentPoint()}");
+                                //Debug.Log($"Loaded point: {moveActionData.path.index}, {moveActionData.path.GetCurrentPoint()}");
                                 //Debug.Log($"Loaded next Point:: {moveActionData.path.index}, {moveActionData.path.GetCurrentPoint()}");
                                 return;
                             }
@@ -286,11 +295,15 @@ namespace Mlf.Brains.Actions
                                 int2 end = map.getGridPosition(in moveActionData.destination);
 
 
-                                Debug.Log($"MoveAction point and dest:: {pos}, {end}");
+                                //Debug.Log($"MoveAction point and dest:: {pos}, {end}");
 
-                                PathData path = UtilsPath.findPath(in pos, in end,
-                                    in groundTypeReferences, in map);
-                                Debug.Log($"Path 1: {path.point1}, {translation.Value}");
+                                PathData path = UtilsPath.findPath(
+                                    in pos, 
+                                    in end,
+                                    //in groundTypeReferences, 
+                                    in cells, 
+                                    in map);
+                                //Debug.Log($"Path 1: {path.point1}, {translation.Value}");
 
                                 moveActionData.updatePath(in path, in map);
                                 //Debug.Log($"MoveActionSystem->New Path::: {path}");

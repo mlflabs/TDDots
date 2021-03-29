@@ -9,32 +9,12 @@ using UnityEngine;
 namespace Mlf.Grid2d.Ecs
 {
 
-    public struct GridBlob
+    [System.Serializable]
+    public struct MapComponentShared : ISharedComponentData
     {
-        public BlobArray<Cell> cells;
-
-        public static BlobAssetReference<GridBlob> ConstructBlobdata(Cell[] _cells)
-        {
-
-            var builder = new BlobBuilder(Allocator.Temp);
-
-            ref var root = ref builder.ConstructRoot<GridBlob>();
-
-
-            var cells = builder.Allocate(ref root.cells, _cells.Length);
-            //var values = builder.Construct(ref root.cells);
-
-            for (int i = 0; i < _cells.Length; i++)
-            {
-                cells[i] = _cells[i];
-            }
-
-            var rootRef = builder.CreateBlobAssetReference<GridBlob>(Allocator.Persistent);
-
-            return rootRef;
-
-        }
+        public MapType type;
     }
+
 
 
     public struct GroundTypeStruct
@@ -71,7 +51,7 @@ namespace Mlf.Grid2d.Ecs
         public int2 gridSize;
         public float2 cellSize;
         public float2 originPosition;
-        public BlobAssetReference<GridBlob> gridRef;
+        public MapType mapType;
 
 
         public int getIndex(in int2 pos)
@@ -97,11 +77,14 @@ namespace Mlf.Grid2d.Ecs
             (int)((worldPosition - originPosition).y / cellSize.y));
         }
 
-        public Cell getCell(in int2 pos)
+        public Cell getCell(in int2 pos, in NativeArray<Cell>cells)
         {
             //are we inside the grid
             if (!validGridPosition(pos)) return new Cell();
-            return gridRef.Value.cells[getIndex(in pos)];
+            //if (mapType == MapType.main)
+                return cells[getIndex(in pos)];
+            //else
+            //    return cells[getIndex(in pos)];
         }
 
         public bool validGridPosition(in int2 pos)
@@ -113,22 +96,29 @@ namespace Mlf.Grid2d.Ecs
 
         public float2 getWorldPosition(int2 gridPos)
         {
-            int2 pos = getCell(gridPos).pos;
-            return (pos * cellSize) + originPosition;
+            //int2 pos = getCell(gridPos).pos;
+            //return (pos * cellSize) + originPosition;
+            return (gridPos * cellSize) + originPosition;
         }
 
         public float2 getWorldPositionCellCenter(in int2 gridPos)
         {
-            return (getCell(gridPos).pos * cellSize) +
+            return (gridPos * cellSize) +
                     originPosition +
                     (cellSize / 2);
+            //return (getCell(gridPos).pos * cellSize) +
+            //       originPosition +
+            //       (cellSize / 2);
         }
 
         public float3 getWorldPositionCellCenter(in int2 gridPos, float z = 0f)
         {
-            float2 f2 = (getCell(gridPos).pos * cellSize) +
+            float2 f2 = (gridPos * cellSize) +
                     originPosition +
                     (cellSize / 2);
+            //float2 f2 = (getCell(gridPos).pos * cellSize) +
+            //        originPosition +
+            //        (cellSize / 2);
             return new float3(f2.x, f2.y, z);
         }
 
@@ -150,10 +140,18 @@ namespace Mlf.Grid2d.Ecs
         //public static int2 gridMapSize;
 
         //public static NativeHashMap<int, GridData> Maps;
-        public static NativeList<GridDataStruct> Maps;
+        public static MapType CurrentMapType = MapType.main;
+        public static GridDataStruct MainMap;
+        public static GridDataStruct SecondaryMap;
+
+        public static NativeArray<Cell> MainMapCells;
+        public static NativeArray<Cell> SecondaryMapCells;
+
+        public static NativeHashMap<byte, GroundTypeStruct> GroundTypeReferences;
+
 
         //default is 0. we assume we have at least one map, and first come first serve
-        private static int _currentMapIndex;
+        /*private static int _currentMapIndex;
         public static int currentMapIndex
         {
             get { return _currentMapIndex; }
@@ -163,9 +161,9 @@ namespace Mlf.Grid2d.Ecs
                 //when value changes we need to also change the currentMapData value
                 currentMapData = Maps[value];
             }
-        }
-        public static GridDataStruct currentMapData;
-        public static NativeHashMap<byte, GroundTypeStruct> GroundTypeReferences;
+        }*/
+        //public static GridDataStruct currentMapData;
+
         ///public static bool dirtyMaps;
 
         //public int gridWidth;
@@ -193,7 +191,8 @@ namespace Mlf.Grid2d.Ecs
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            if (Maps.IsCreated) Maps.Dispose();
+            if (MainMapCells.IsCreated) MainMapCells.Dispose();
+            if (SecondaryMapCells.IsCreated) SecondaryMapCells.Dispose();
 
             if (GroundTypeReferences.IsCreated) GroundTypeReferences.Dispose();
 
@@ -201,82 +200,166 @@ namespace Mlf.Grid2d.Ecs
 
 
 
-        public static bool CanAddBuilding(in int2 pos, in int2 size)
+        public static int getIndex(in int2 pos, MapType mapType = MapType.current)
         {
+            if (mapType == MapType.current) mapType = CurrentMapType;
 
-            //int gridIndex = -1;
-            int height = -1;
-            //int index;
-            Cell c;
-            for (int x = pos.x; x < pos.x + size.x; x++)
-                for (int z = pos.y; z < pos.y + size.y; z++)
-                {
-                    int index = currentMapData.getIndex(x, z);
-                    c = currentMapData.getCell(new int2(x, z));
-                    if (height == -1)
-                        height = c.pos.y;
-
-                    if (height == c.pos.y)
-                    {
-                        if (UtilsGrid.canBuild(in c, in GroundTypeReferences) == false ||
-                            c.buildingId != 0)
-                        {
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-            return true;
+            if (mapType == MapType.main)
+                return pos.x + (pos.y * MainMap.gridSize.x);
+            else
+                return pos.x + (pos.y * SecondaryMap.gridSize.x);
+        }
+        public static int getIndex(int x, int z, MapType mapType)
+        {
+            if (mapType == MapType.main)
+                return x + (z * MainMap.gridSize.x);
+            else
+                return x + (z * SecondaryMap.gridSize.x);
         }
 
-        public static bool AddBuildingToGrid(byte buildingId, in int2 pos, in int2 size, int mapid)
+        public static int2 getGridPosition(in float2 worldPosition, MapType mapType = MapType.current)
         {
-            Debug.Log("***********************");
-            //Get mapid
-            int mapIndex = -1;
-            for (int i = 0; i < Maps.Length; i++)
+            if (mapType == MapType.current) mapType = CurrentMapType;
+
+            if (mapType == MapType.main)
+                return new int2(
+                    (int)((worldPosition - MainMap.originPosition).x / MainMap.cellSize.x),
+                    (int)((worldPosition - MainMap.originPosition).y / MainMap.cellSize.y));
+            else
+                return new int2(
+                    (int)((worldPosition - SecondaryMap.originPosition).x / SecondaryMap.cellSize.x),
+                    (int)((worldPosition - SecondaryMap.originPosition).y / SecondaryMap.cellSize.y));
+        }
+
+        public static int2 getGridPosition(in float3 _worldPosition, MapType mapType = MapType.current)
+        {
+            if (mapType == MapType.current) mapType = CurrentMapType;
+
+            float2 worldPosition = UtilsGrid.ToFloat2(_worldPosition);
+            if (mapType == MapType.main)
             {
-                if (Maps[i].id == mapid)
-                {
-                    mapIndex = i;
-                    break;
-                }
+
+                return new int2(
+                    (int)((worldPosition - MainMap.originPosition).x / MainMap.cellSize.x),
+                    (int)((worldPosition - MainMap.originPosition).y / MainMap.cellSize.y));
             }
-            if (mapIndex == -1)
+            else
             {
-                Debug.LogWarning($"Couldnt modify map with id: {mapid}");
+                return new int2(
+                    (int)((worldPosition - SecondaryMap.originPosition).x / SecondaryMap.cellSize.x),
+                    (int)((worldPosition - SecondaryMap.originPosition).y / SecondaryMap.cellSize.y));
             }
 
-            //Test if we can modify it
-            if (!CanAddBuilding(pos, size))
+        }
+
+        private static void SetCell(Cell c, MapType type)
+        {
+            int index = getIndex(c.pos, type);
+            if (type == MapType.main)
+                MainMapCells[index] = c;
+            else
+                SecondaryMapCells[index] = c;
+
+        }
+
+        public static Cell getCell(in int2 pos, MapType mapType = MapType.current)
+        {
+            if (mapType == MapType.current) mapType = CurrentMapType;
+
+            if (!validGridPosition(pos, mapType)) return new Cell();
+            if (mapType == MapType.main)
+                return MainMapCells[getIndex(in pos, mapType)];
+            else
+                return SecondaryMapCells[getIndex(in pos, mapType)];
+
+        }
+
+        public static float2 getCellSize(MapType mapType = MapType.current)
+        {
+            if (mapType == MapType.current) mapType = CurrentMapType;
+
+            if (mapType == MapType.main)
+                return MainMap.cellSize;
+            else
+                return SecondaryMap.cellSize;
+        }
+        
+        public static Cell getCell(in float2 worldPosition)
+        {
+
+            //Which map are we in
+            int2 pos = new int2(
+                   (int)((worldPosition - MainMap.originPosition).x / MainMap.cellSize.x),
+                   (int)((worldPosition - MainMap.originPosition).y / MainMap.cellSize.y));
+
+
+            if(validGridPosition(pos, MapType.main))
             {
-                Debug.LogWarning($"Not able to build building at: {pos} size: {size}");
-                return false; ;
+                return getCell(pos, MapType.main);
+            }
+            else if(validGridPosition(pos, MapType.secondary))
+            {
+                return getCell(pos, MapType.secondary);
             }
 
-            Debug.Log("**************************Adding Building to GridSystem");
-            //Modify cells
-            Cell[] cells = Maps[mapIndex].gridRef.Value.cells.ToArray();
+            return new Cell();
 
-            int cellIndex;
-            Cell c;
-            for (int x = 0; x < size.x; x++)
-                for (int z = 0; z < size.y; z++)
-                {
-                    cellIndex = Maps[mapIndex].getIndex(new int2(x + pos.x, z + pos.y));
-                    c = cells[cellIndex];
-                    c.buildingId = buildingId;
-                    cells[cellIndex] = c;
-                    //Debug.Log($"Changed Grid index: {cellIndex}");
-                }
 
-            UpdateMap(cells, mapid);
-            Debug.Log("======================= Ref modified");
-            //Create new blob and save it
-            return true;
+        }
+
+
+        public static bool validGridPosition(in int2 pos, MapType mapType)
+        {
+            if (mapType == MapType.main)
+                return !(pos.x < 0 || pos.y < 0 ||
+                    pos.x >= MainMap.gridSize.x || pos.y >= MainMap.gridSize.y);
+            else
+                return !(pos.x < 0 || pos.y < 0 ||
+                    pos.x >= SecondaryMap.gridSize.x || pos.y >= SecondaryMap.gridSize.y);
+
+
+        }
+
+        public static float2 getWorldPosition(in int2 gridPos, MapType mapType = MapType.current)
+        {
+            if (mapType == MapType.current) mapType = CurrentMapType;
+            if (mapType == MapType.main)
+                return (gridPos * MainMap.cellSize) + MainMap.originPosition;
+            else
+                return (gridPos * SecondaryMap.cellSize) + SecondaryMap.originPosition;
+        }
+
+        public static float3 getWorldPosition(in int2 gridPos, MapType mapType = MapType.current, int z = 0)
+        {
+            if (mapType == MapType.current) mapType = CurrentMapType;
+            float2 pos;
+            if (mapType == MapType.main)
+                pos = (gridPos * MainMap.cellSize) + MainMap.originPosition;
+            else
+                pos= (gridPos * SecondaryMap.cellSize) + SecondaryMap.originPosition;
+
+            return new float3(pos.x, pos.y, z);
+        }
+
+
+        public static float2 getWorldPositionCellCenter(in int2 gridPos, MapType mapType = MapType.current)
+        {
+            if (mapType == MapType.current) mapType = CurrentMapType;
+            if (mapType == MapType.main)
+                return (gridPos * MainMap.cellSize) + MainMap.originPosition + (MainMap.cellSize / 2);
+            else
+                return (gridPos * SecondaryMap.cellSize) + SecondaryMap.originPosition + (SecondaryMap.cellSize / 2);
+        }
+
+        public static float3 getWorldPositionCellCenter(in int2 gridPos, MapType mapType = MapType.current, float z = 0f)
+        {
+            if (mapType == MapType.current) mapType = CurrentMapType;
+            float2 f2;
+            if (mapType == MapType.main)
+                f2 = (gridPos * MainMap.cellSize) + MainMap.originPosition + (MainMap.cellSize / 2);
+            else
+                f2 = (gridPos * SecondaryMap.cellSize) + SecondaryMap.originPosition + (SecondaryMap.cellSize / 2);
+            return new float3(f2.x, f2.y, z);
         }
 
 
@@ -298,92 +381,145 @@ namespace Mlf.Grid2d.Ecs
 
 
 
-
-        public static void UpdateMap(Cell[] cells, int id)
+        public static void UpdateCell(int2 pos, MapType mapType)
         {
-            Debug.Log("Updating GridData: " + id);
+            //Debug.LogWarning("Updating Grid Cell trying.....");
+            Cell c = getCell(pos, mapType);
+            if (c.isDefault()) return;
 
-            int mapIndex = -1;
-            for (int i = 0; i < Maps.Length; i++)
+            SetCell(AddCellModifiers(c, mapType), mapType);
+
+           // Debug.LogWarning("Updated");
+        }
+
+        public static void UpdateCell(int index, MapType mapType)
+        {
+            //Debug.LogWarning("Updating Grid Cell trying.....");
+            Cell c = getCell(index, mapType);
+            if (c.isDefault()) return;
+
+            SetCell(AddCellModifiers(c, mapType), mapType);
+
+            //Debug.LogWarning("Updated");
+        }
+
+
+        public static Cell getCell(int index, MapType type)
+        {
+            
+
+            if(type == MapType.main)
             {
-                if (Maps[i].id == id)
-                {
-                    mapIndex = i;
-                    break;
-                }
+                return MainMapCells[index];
             }
-            if (mapIndex == -1)
+            else if(type == MapType.secondary)
             {
-                Debug.LogWarning($"Couldnt find GridData with id: {id}");
+                return SecondaryMapCells[index];
+            }
+            else if(type == MapType.current)
+            {
+                return getCell(index, GridSystem.CurrentMapType);
+            }
+            else
+            {
+                Debug.LogError("Maptype not recognized:: " + type);
+            }
+            return new Cell();
+
+        }
+
+        public static Cell AddCellModifiers(Cell c, MapType mapType)
+        {
+            int index = getIndex(c.pos, mapType);
+            byte typeid;
+            if (MapPlantManagerSystem.CellHasPlantItem(index, mapType))
+            {
+                typeid = MapPlantManagerSystem.GetCellPlantItem(index, mapType).typeId;
+                c = MapPlantManagerSystem.PlantItemReferences[typeid].UpdateCell(c);
+            }
+            if(MapBuildingManagerSystem.CellHasBuilding(index, mapType))
+            {
+                typeid = MapBuildingManagerSystem.GetCellBuilding(index, mapType).typeId;
+                c = MapBuildingManagerSystem.BuildingReferences[typeid].updateCell(c);
             }
 
-            BlobAssetReference<GridBlob> mapRef = GridBlob.ConstructBlobdata(cells);
+            return c;
+        }
 
-            GridDataStruct data = Maps[mapIndex];
-            data.gridRef.Dispose();
-            data.gridRef = mapRef;
-
-            Maps[mapIndex] = data;
-
-            //see if we need to update current map
-            if (currentMapIndex == mapIndex)
+        private static void updateGridData(GridDataStruct data, MapType type)
+        {
+            if (type == MapType.main)
             {
-                currentMapData = Maps[mapIndex];
+                MainMap = data;
+            }
+            else if (type == MapType.secondary)
+            {
+                SecondaryMap = data;
+            }
+            else
+            {
+                Debug.LogError("Maptype not recognized:: " + type);
             }
         }
 
-        public static void UpdateMap(MapDataSO map)
+        public static void UpdateMap(Cell[] cells, in GridDataStruct map)
         {
+            Debug.Log("Updating GridData: " + map.id);
 
-            //create blob 
-            BlobAssetReference<GridBlob> mapRef = GridBlob.ConstructBlobdata(map.Grid.Cells);
+            if (map.mapType == MapType.main)
+            {
+                MainMapCells = new NativeArray<Cell>(cells, Allocator.Persistent);
+            }
+            else
+            {
+                SecondaryMapCells = new NativeArray<Cell>(cells, Allocator.Persistent);
+            }
+        }
 
-            if (!Maps.IsCreated)
-                Maps = new NativeList<GridDataStruct>(Allocator.Persistent);
 
 
-            //TODO if we are UPDATING, just modify the reference, destroy the old blob
+        public static void UpdateMap(MapDataSO map, MapType type)
+        {
+            Debug.Log($"GridSystem:::: 1");
+
+            // Other systems depend on grid data, this needs to be first
             var grid = new GridDataStruct
             {
                 id = map.id,
                 gridSize = map.Grid.GridSize,
                 cellSize = map.CellSize,
-                gridRef = mapRef
+                mapType = type
             };
+            updateGridData(grid, type);
 
 
+            //Next update item, plant, building lists, these will influence cell data
+            MapPlantManagerSystem.LoadPlantItems(map, type);
+            MapBuildingManagerSystem.LoadBuildingItems(map, type);
 
-            //see if we already have this map
-            int mapindex = -1;
-            for (int i = 0; i < Maps.Length; i++)
+            //now lets create our array, and calculate cell data
+            var cells = new NativeArray<Cell>(map.Grid.Cells.Length, Allocator.Temp);
+
+            for(int i = 0; i < cells.Length; i++)
             {
-                if (Maps[i].id == map.id)
-                {
-                    mapindex = i;
-                    break;
-                }
+                cells[i] = AddCellModifiers(map.Grid.Cells[i],type);
             }
 
-            if (mapindex == -1)
+            if (type == MapType.main)
             {
-                Maps.Add(grid);
+                //if (MainMapCells.IsCreated) MainMapCells.Dispose();
+                MainMapCells = new NativeArray<Cell>(cells, Allocator.Persistent);
+            }
+            else if(type == MapType.secondary)
+            {
+                MainMapCells = new NativeArray<Cell>(cells, Allocator.Persistent);
             }
             else
             {
-                Maps[mapindex] = grid;
+                Debug.LogError("Maptype not recognized:: " + type);
             }
 
-            //see if we need to update current map
-            if (currentMapIndex == mapindex)
-            {
-                currentMapData = Maps[mapindex];
-            }
-            else if (mapindex == -1 && currentMapIndex == 0)
-            {
-                //in case this is our first map
-                currentMapData = Maps[0];
-            }
-
+            cells.Dispose();
             //Do we need to update map tile references
             if (!GroundTypeReferences.IsCreated)
             {

@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using Mlf.Npc;
+using Unity.Entities;
 using UnityEngine;
 
 namespace Mlf.Brains
@@ -28,6 +29,7 @@ namespace Mlf.Brains
         choosingNewState,
         loadingNewState,
         newStateLoaded,
+
         remvingStateCompleteTag,
         removingOldStateCurrentTag
     }
@@ -36,6 +38,17 @@ namespace Mlf.Brains
 
         public StateCompleteProgress progress;
     }
+
+
+    public struct NpcData : IComponentData
+    {
+        public int userId;
+        public int itemOwned;
+        public ItemType itemType;
+
+    }
+
+
 
 
     class StateSelectionSystem : SystemBase
@@ -67,25 +80,25 @@ namespace Mlf.Brains
                    // previous state finished, its current tag removed, initiate state seleciton
                    if (completeTag.progress == StateCompleteProgress.removingOldStateCurrentTag)
                    {
-                       Debug.Log($"00000 -- {currentState.state}");
+                       Debug.Log($"00000 22-- {currentState.state}");
                        //old state tag removed, so no current state, initiate scorers
                        completeTag.progress = StateCompleteProgress.choosingNewState;
                    }
                    else if (completeTag.progress == StateCompleteProgress.choosingNewState)
                    {
-                       Debug.Log($"1111111 -- {currentState.state}");
+                       Debug.Log($"1111111 22-- {currentState.state}");
                        //state systems have inputed score, now let the highest load tag
                        completeTag.progress = StateCompleteProgress.loadingNewState;
                    }
                    else if (completeTag.progress == StateCompleteProgress.loadingNewState)
                    {
-                       Debug.Log($"22222 -- {currentState.state}");
+                       Debug.Log($"22222 33-- {currentState.state}");
                        //new state loaded, remove currentStateTag, done with this system
                        completeTag.progress = StateCompleteProgress.remvingStateCompleteTag;
                    }
                    else if (completeTag.progress == StateCompleteProgress.remvingStateCompleteTag)
                    {
-                       Debug.Log($"33333 -- {currentState.state}");
+                       Debug.Log($"33333 44-- {currentState.state}");
                        //state selection finished, remove this tag
                        ecb.RemoveComponent<StateCompleteTag>(entityInQueryIndex, entity);
                    }

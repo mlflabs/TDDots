@@ -25,16 +25,16 @@ public class MapManagerEditor : Editor
             Vector3Int tilePos1;
             Cell cell;
             float3 offset = new float3(0.1f, 0.1f, 0f);
-            for (int x = 0; x < manager.CurrentMap.Grid.GridSize.x; x++)
-                for (int y = 0; y < manager.CurrentMap.Grid.GridSize.y; y++)
+            for (int x = 0; x < manager.MainMap.Grid.GridSize.x; x++)
+                for (int y = 0; y < manager.MainMap.Grid.GridSize.y; y++)
                 {
-                    cell = manager.CurrentMap.Grid.GetCell(x, y);
-                    cellWorldPos = manager.CurrentMap.GetCellWorldCoordinates(cell.pos, 0)
+                    cell = manager.MainMap.Grid.GetCell(x, y);
+                    cellWorldPos = manager.MainMap.GetCellWorldCoordinates(cell.pos, 0)
                         + offset;
                     tilePos1 = manager.tilemap.layoutGrid.WorldToCell(cellWorldPos);
                     Debug.Log($"Updating tile GridPos: {cell.pos}, TilePos: {tilePos1}, WorldPos: {cellWorldPos}");
                     manager.tilemap.SetTile(tilePos1,
-                        manager.CurrentMap.TileRefList.list[cell.tileRefIndex].tile);
+                        manager.MainMap.TileRefList.list[cell.tileRefIndex].tile);
                 }
         }
 
@@ -43,8 +43,8 @@ public class MapManagerEditor : Editor
         {
             Debug.Log("Update from Tilemap.....");
 
-            Cell[] cells = new Cell[manager.CurrentMap.Grid.GridSize.x *
-                                    manager.CurrentMap.Grid.GridSize.y];
+            Cell[] cells = new Cell[manager.MainMap.Grid.GridSize.x *
+                                    manager.MainMap.Grid.GridSize.y];
 
             float3 pos;
             TileBase tile;
@@ -52,14 +52,14 @@ public class MapManagerEditor : Editor
             TileDataSO data;
             int index;
             int tileRefIndex;
-            for (int x = 0; x < manager.CurrentMap.Grid.GridSize.x; x++)
-                for (int y = 0; y < manager.CurrentMap.Grid.GridSize.y; y++)
+            for (int x = 0; x < manager.MainMap.Grid.GridSize.x; x++)
+                for (int y = 0; y < manager.MainMap.Grid.GridSize.y; y++)
                 {
-                    pos = manager.CurrentMap.GetCellWorldCoordinates(new int2(x, y), 0);
+                    pos = manager.MainMap.GetCellWorldCoordinates(new int2(x, y), 0);
                     tilePos = manager.tilemap.layoutGrid.WorldToCell(pos);
                     tile = manager.tilemap.GetTile(tilePos);
 
-                    tileRefIndex = manager.CurrentMap.TileRefList.getRefIndex(tile);
+                    tileRefIndex = manager.MainMap.TileRefList.getRefIndex(tile);
 
                     if (tileRefIndex == -1)
                     {
@@ -68,8 +68,8 @@ public class MapManagerEditor : Editor
                     }
 
                     Debug.Log("TileRefIndex:: " + tileRefIndex);
-                    data = manager.CurrentMap.TileRefList.list[tileRefIndex].data;
-                    index = manager.CurrentMap.GetGridIndex(x, y);
+                    data = manager.MainMap.TileRefList.list[tileRefIndex].data;
+                    index = manager.MainMap.GetGridIndex(x, y);
                     cells[index] = new Cell
                     {
                         tileRefIndex = (byte)tileRefIndex,
@@ -78,7 +78,7 @@ public class MapManagerEditor : Editor
                     };
 
                 }
-            manager.CurrentMap.Grid.Cells = cells;
+            manager.MainMap.Grid.Cells = cells;
 
         }
 

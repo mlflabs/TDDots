@@ -1,8 +1,10 @@
 ﻿using Mlf.Brains.Actions;
+using Mlf.Grid2d;
 using Mlf.Grid2d.Ecs;
 using Mlf.Map2d;
 using Mlf.Utils.Random;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -39,9 +41,9 @@ namespace Mlf.Brains.States
         protected override void OnUpdate()
         {
 
+            //Debug.Log("Wander Update");
             var randomArray = World.GetExistingSystem<RandomSystem>().RandomArray;
-            var maps = GridSystem.Maps;
-            var groundTypeReferences = GridSystem.GroundTypeReferences;
+            //var groundTypeReferences = GridSystem.GroundTypeReferences;
 
             List<MapComponentShared> mapIds = new List<MapComponentShared>();
             EntityManager.GetAllUniqueSharedComponentData(mapIds);
@@ -49,7 +51,20 @@ namespace Mlf.Brains.States
             for (int m = 0; m < mapIds.Count; m++)
             {
                 //int mapId = mapIds[m].mapId;
-                GridDataStruct map = maps[mapIds[m].mapId];
+                GridDataStruct map;
+                NativeArray<Cell> cells;
+                
+                if(mapIds[m].type == MapType.main)
+                {
+                    map = GridSystem.MainMap;
+                    cells = GridSystem.MainMapCells;
+                }
+                else
+                {
+                    map = GridSystem.SecondaryMap;
+                    cells = GridSystem.SecondaryMapCells;
+                }
+
                 Entities
                     .WithSharedComponentFilter(mapIds[m])
                     .WithName("DefaultWanderStateSystem")
@@ -62,10 +77,11 @@ namespace Mlf.Brains.States
                              in WanderData wanderData) =>
 
                              {
+                                 //Debug.Log("-wander000000");
                                  //Debug.Log($"Wander State: {wanderState.state} Finished: {completeProgressData.finished}");
                                  if (wanderState.state == 0)
                                  {
-                                     Debug.Log("Wander State 2");
+                                     //Debug.Log("Wander State 2");
 
                                      var random = randomArray[nativeThreadIndex];
                                      int2 randomLocation = new int2(-1, -1);
@@ -75,9 +91,9 @@ namespace Mlf.Brains.States
 
                                      while (!moveActionData.path.hasPath())
                                      {
-                                         Debug.Log($"MinMax: {wanderData.maxDistance} ");
-                                         Debug.Log($"Current Map Position:: {currentMapPosition.x}, {currentMapPosition.y} ");
-                                         Debug.Log($"Transform:: {transform.Position}, {transform.Position.x}, {transform.Position.z}");
+                                         //Debug.Log($"MinMax: {wanderData.maxDistance} ");
+                                         //Debug.Log($"Current Map Position:: {currentMapPosition.x}, {currentMapPosition.y} ");
+                                         //Debug.Log($"Transform:: {transform.Position}, {transform.Position.x}, {transform.Position.z}");
                                          randomLocation = currentMapPosition + new int2(
                                              random.NextInt(wanderData.maxDistance * -1, wanderData.maxDistance),
                                              random.NextInt(wanderData.maxDistance * -1, wanderData.maxDistance));
@@ -95,7 +111,8 @@ namespace Mlf.Brains.States
                                              PathData path = UtilsPath.findPath(
                                                  in currentMapPosition,
                                                  in randomLocation,
-                                                 in groundTypeReferences,
+                                                 //in groundTypeReferences,
+                                                 in cells,
                                                  in map);
                                              //Debug.Log($"Random Location:: {randomLocation.x},{randomLocation.y} ");
                                              moveActionData.loadPath(
@@ -106,14 +123,14 @@ namespace Mlf.Brains.States
                                      }
 
 
-                                     Debug.Log($"****************** New Wander Destination::: {moveActionData.destination} ");
+                                     //Debug.Log($"****************** New Wander Destination::: {moveActionData.destination} ");
 
                                      wanderState.state = 1;
 
                                  } // state  = 0
                                  else if (wanderState.state == 1)
                                  {
-                                     Debug.Log($"Wander State 3 {moveActionData.finished}");
+                                     //Debug.Log($"Wander State 3 {moveActionData.finished}");
                                      if (moveActionData.finished)
                                          currentState.finished = true;
                                  }

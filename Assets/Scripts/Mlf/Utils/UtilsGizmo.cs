@@ -51,11 +51,16 @@ public class UtilsGizmo
                                         string text)
     {
         DrawBox(center, size);
-        UtilsText.CreateWorldText(text, null, center, 10);
+        UtilsText.CreateWorldText(text, null, center, 12);
     }
 
 
-
+    public static void DrawText(Vector3 center,
+                                       int textSize,
+                                       string text)
+    {
+        UtilsText.CreateWorldText(text, null, center, textSize);
+    }
 
 
 

@@ -90,7 +90,8 @@ namespace Mlf.Grid2d.Ecs
 
         public static PathData findPath(in int2 startPosition,
                                     in int2 endPosition,
-                                    in NativeHashMap<byte, GroundTypeStruct> groundTypes,
+                                    //in NativeHashMap<byte, GroundTypeStruct> groundTypes,
+                                    in NativeArray<Cell> cells,
                                     in GridDataStruct gridData)
         {
 
@@ -100,7 +101,7 @@ namespace Mlf.Grid2d.Ecs
                 Debug.Log("UtilsPath => Already at destination");
                 PathData data = new PathData();
                 int i = gridData.getIndex(in startPosition);
-                data.point1 = gridData.gridRef.Value.cells[i].pos;
+                data.point1 = cells[i].pos;
                 return data;
             }
 
@@ -113,7 +114,7 @@ namespace Mlf.Grid2d.Ecs
 
 
             NativeArray<Node> pathNodeArray = new NativeArray<Node>(
-                gridData.gridRef.Value.cells.Length, Allocator.Temp);
+                cells.Length, Allocator.Temp);
             NativeList<int> openList = new NativeList<int>(Allocator.Temp);
             NativeList<int> closedList = new NativeList<int>(Allocator.Temp);
 
@@ -135,7 +136,7 @@ namespace Mlf.Grid2d.Ecs
 
             // Prep the start note
             Node startNode = new Node(
-                in gridData.gridRef.Value.cells[startNodeIndex],
+                cells[startNodeIndex],
                 startNodeIndex);
             startNode.gCost = 0;
             startNode.CalculateFCost();
@@ -196,7 +197,7 @@ namespace Mlf.Grid2d.Ecs
 
 
                     neighbourNode = new Node(
-                        in gridData.gridRef.Value.cells[neighbourNodeIndex],
+                        cells[neighbourNodeIndex],
                         neighbourNodeIndex);
 
 
@@ -287,7 +288,7 @@ namespace Mlf.Grid2d.Ecs
 
 
 
-
+        /*
 
         public static void FindItemQuality(in int2 startPosition,
                                                 in MapItemData mapItemData,
@@ -404,7 +405,7 @@ namespace Mlf.Grid2d.Ecs
                             openList.Add(neighbourNode.index);
                         }
                     }
-                    */
+                    
                 } //for
             } //while
 
@@ -420,7 +421,7 @@ namespace Mlf.Grid2d.Ecs
 
         }
 
-
+        */
 
 
         private static int CalculateIndex(int2 pos, int gridWidth)

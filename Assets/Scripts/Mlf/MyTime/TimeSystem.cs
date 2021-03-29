@@ -103,8 +103,9 @@ namespace Mlf.MyTime
             Entities
                 .WithName("MyTimeManager")
                 .ForEach((Entity entity,
-                         in MyTimeTag timeData) =>
+                         ref MyTimeTag timeData) =>
                 {
+                    //timeData.ElapsedTime = ElapsedTime;
                     //just have a default timetag to force update.
                 }).ScheduleParallel();
 

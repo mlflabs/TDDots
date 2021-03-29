@@ -7,8 +7,11 @@ namespace Mlf.Tiles2d
     [Serializable]
     public class TileReference
     {
+        public bool isLowerGround;
         public TileBase tile;
         public TileDataSO data;
+        //load this underneeth, only if its uper ground tile
+        public TileBase lowerGround;
     }
 
     [CreateAssetMenu(fileName = "TileReferenceList", menuName = "Mlf/2D/Tiles/TileReferenceList")]

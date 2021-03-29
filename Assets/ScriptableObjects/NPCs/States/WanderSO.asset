@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be79ebe5ebdf73048b41b288cb9140b9, type: 3}
   m_Name: WanderSO
   m_EditorClassIdentifier: 
-  wanderDefaultScore: 50
+  wanderDefaultScore: 10

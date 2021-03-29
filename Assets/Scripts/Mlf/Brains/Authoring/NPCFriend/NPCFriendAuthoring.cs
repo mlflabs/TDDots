@@ -1,5 +1,6 @@
 ﻿using Mlf.Brains.Actions;
 using Mlf.Brains.States;
+using Mlf.Grid2d.Ecs;
 using Mlf.Map2d;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -24,11 +25,11 @@ namespace Mlf.Brains.Authoring.NPCFriend
 
             
             //Map shared object
-            int currentMapId = (MapManager.Instance != null) ?
-                MapManager.Instance.GetCurrentMapId() : 0;
+            //int currentMapId = (MapManager.Instance != null) ?
+            //    MapManager.Instance.GetCurrentMapId() : 0;
 
             dstManager.AddSharedComponentData(entity, new MapComponentShared
-            { mapId = currentMapId });
+            { type = MapType.main });
 
 
             //Brain Tags

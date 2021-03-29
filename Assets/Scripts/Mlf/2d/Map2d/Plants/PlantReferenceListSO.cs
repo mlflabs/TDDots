@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -35,6 +36,19 @@ namespace Mlf.Map2d
                 if (list[i].tile == tile) return i;
             }
             return -1;
+        }
+
+        public Dictionary<byte, PlantDataSO> GetDictionary()
+        {
+            var dic = new Dictionary<byte, PlantDataSO>();
+            for (int i = 0; i < list.Length; i++)
+            {
+                if (dic.ContainsKey(list[i].data.typeId))
+                    Debug.LogError("Duplicate Plant Reference TypeId: " + list[i].data.typeId);
+                dic[list[i].data.typeId] = list[i].data;
+            }
+
+            return dic;
         }
 
     }

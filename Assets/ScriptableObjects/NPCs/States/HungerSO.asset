@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: HungerSO
   m_EditorClassIdentifier: 
   hungerLPS: 0.5
-  hungerThreshold: 50
-  startingHunger: 0
+  hungerThreshold: 10
+  startingHunger: 11
