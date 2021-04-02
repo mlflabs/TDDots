@@ -6,9 +6,9 @@ namespace Mlf.Brains.States
 {
     public struct HungerStateCurrent : IComponentData
     {
-        public HungerStates state; //defaults to first enum
-        public int itemPosIndex; // position of item
-        public ItemType itemType;
-        public PathData path;
+        public HungerStates State; //defaults to first enum
+        public int ItemPosIndex; // position of item
+        public ItemType ItemType;
+        public PathData Path;
     }
 }

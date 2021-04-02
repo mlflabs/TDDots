@@ -7,21 +7,21 @@ namespace Mlf.Brains.States
 
     public struct PlayScore : IComponentData
     {
-        public float value;
+        public float Value;
     }
 
     public struct PlayState : IComponentData
     {
-        public float value;
-        public bool skipNextStateSelection;
+        public float Value;
+        public bool SkipNextStateSelection;
     }
 
     public struct PlayStateCurrent : IComponentData { }
 
     public struct PlayData : IComponentData
     {
-        public float playLPS;
-        public float valueThreshold;
+        public float PlayLps;
+        public float ValueThreshold;
         //public float lastCheck; delay to check every sec, or every so many frames
     }
 
@@ -33,12 +33,12 @@ namespace Mlf.Brains.States
     [UpdateBefore(typeof(StateSelectionSystem))]
     class PlayManagementSystem : SystemBase
     {
-        EndSimulationEntityCommandBufferSystem endSimulationEcbSystem;
+        EndSimulationEntityCommandBufferSystem _endSimulationEcbSystem;
 
         protected override void OnCreate()
         {
             base.OnCreate();
-            endSimulationEcbSystem =
+            _endSimulationEcbSystem =
               World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
@@ -46,7 +46,7 @@ namespace Mlf.Brains.States
         protected override void OnUpdate()
         {
             float deltaTime = Time.DeltaTime;
-            var ecb = endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
+            var ecb = _endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
 
             Entities
@@ -57,7 +57,7 @@ namespace Mlf.Brains.States
                 //calculate current hunger
 
 
-                state.value += data.playLPS * deltaTime;
+                state.Value += data.PlayLps * deltaTime;
             }).ScheduleParallel();
 
 
@@ -73,16 +73,16 @@ namespace Mlf.Brains.States
                {
 
 
-                   if (completeTag.progress == StateCompleteProgress.removingOldStateCurrentTag)
+                   if (completeTag.Progress == StateCompleteProgress.removingOldStateCurrentTag)
                    {
                        Debug.Log("Play, removeing old tag");
-                       if (currentState.state == BrainStates.Play)
+                       if (currentState.State == BrainStates.Play)
                            ecb.RemoveComponent<PlayStateCurrent>(entityInQueryIndex, entity);
 
                    }
-                   else if (completeTag.progress == StateCompleteProgress.loadingNewState)
+                   else if (completeTag.Progress == StateCompleteProgress.loadingNewState)
                    {
-                       if (currentState.state == BrainStates.Play)
+                       if (currentState.State == BrainStates.Play)
                        {
                            Debug.Log("Loading Play State");
                            ecb.AddComponent<PlayStateCurrent>(entityInQueryIndex, entity);
@@ -90,24 +90,24 @@ namespace Mlf.Brains.States
                        }
 
                    }
-                   else if (completeTag.progress == StateCompleteProgress.choosingNewState)
+                   else if (completeTag.Progress == StateCompleteProgress.choosingNewState)
                    {
-                       if (state.skipNextStateSelection)
+                       if (state.SkipNextStateSelection)
                        {
-                           state.skipNextStateSelection = false;
-                           score.value = 0;
+                           state.SkipNextStateSelection = false;
+                           score.Value = 0;
                        }
-                       else if (state.value < data.valueThreshold)//if not hungry just return 0
+                       else if (state.Value < data.ValueThreshold)//if not hungry just return 0
                        {
-                           score.value = 0;
+                           score.Value = 0;
                        }
                        else
                        {
-                           score.value = ScoreUtils.calculateDefaultScore(state.value);
-                           if (score.value > currentState.score)
+                           score.Value = ScoreUtils.CalculateDefaultScore(state.Value);
+                           if (score.Value > currentState.Score)
                            {
-                               currentState.score = score.value;
-                               currentState.state = BrainStates.Play;
+                               currentState.Score = score.Value;
+                               currentState.State = BrainStates.Play;
                            }
                        }
 
@@ -117,20 +117,20 @@ namespace Mlf.Brains.States
 
                }).Schedule(Dependency);
             Dependency = job2;
-            endSimulationEcbSystem.AddJobHandleForProducer(Dependency);
+            _endSimulationEcbSystem.AddJobHandleForProducer(Dependency);
 
         }
     }
 
     class PlayAction : SystemBase
     {
-        protected EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
+        protected EndSimulationEntityCommandBufferSystem MEndSimulationEcbSystem;
 
         protected override void OnCreate()
         {
             base.OnCreate();
 
-            m_EndSimulationEcbSystem = World
+            MEndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
         }
@@ -141,7 +141,7 @@ namespace Mlf.Brains.States
             //Here we will have several steps to complete, find food source, go to it
             //eat it
             var entityCommandBuffer =
-                m_EndSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
+                MEndSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
             Dependency = Entities
                 .ForEach((Entity entity, int entityInQueryIndex) =>
@@ -151,7 +151,7 @@ namespace Mlf.Brains.States
                 })
                 .ScheduleParallel(Dependency);
 
-            m_EndSimulationEcbSystem.AddJobHandleForProducer(Dependency);
+            MEndSimulationEcbSystem.AddJobHandleForProducer(Dependency);
 
             //when finished add ActionCompleteTag
         }

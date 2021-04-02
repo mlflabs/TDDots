@@ -5,7 +5,7 @@ namespace Mlf.Brains.States
 {
     public struct ThirstStateCurrent : IComponentData
     {
-        public ThirstStates state;
-        public int3 destination;
+        public ThirstStates State;
+        public int3 Destination;
     }
 }

@@ -11,7 +11,7 @@ namespace Mlf.UI
 
 
 
-        public void setActivePanel(int i = 0) // Make first the default
+        public void SetActivePanel(int i = 0) // Make first the default
         {
             for (int x = 0; x < panels.Length; x++)
             {
@@ -26,7 +26,7 @@ namespace Mlf.UI
 
         private void Start()
         {
-            setActivePanel(0);
+            SetActivePanel(0);
         }
 
     }

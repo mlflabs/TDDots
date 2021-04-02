@@ -4,14 +4,14 @@ using UnityEngine;
 namespace Mlf.Brains.Authoring.NPCFriend
 {
     [CreateAssetMenu(fileName = "NpcPlantEater", menuName = "Mlf/Brains/NpcPlantEater")]
-    public class NPCPlantEaterSO : ScriptableObject
+    public class NpcPlantEaterSo : ScriptableObject
     {
         public int userId;// = System.Guid.NewGuid();
-        public HungerSO hunger;
+        public HungerSo hunger;
         //public PlaySO play;
-        public RestSO rest;
-        public WanderSO wander;
-        public ThirstSO thirst;
+        public RestSo rest;
+        public WanderSo wander;
+        public ThirstSo thirst;
     }
 
 

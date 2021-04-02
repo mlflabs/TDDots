@@ -3,7 +3,7 @@
 namespace Mlf.Brains.States
 {
     [CreateAssetMenu(fileName = "WanderSO", menuName = "Mlf/Brains/States/WanderStateSO")]
-    public class WanderSO : ScriptableObject
+    public class WanderSo : ScriptableObject
     {
 
         //hungerData LPS LossPerSecond

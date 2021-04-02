@@ -4,11 +4,11 @@ namespace Mlf.Brains.States
 {
     public struct HungerScore : IComponentData
     {
-        public float value;
+        public float Value;
 
-        public float getValue()
+        public float GETValue()
         {
-            return value;
+            return Value;
         }
 
     }

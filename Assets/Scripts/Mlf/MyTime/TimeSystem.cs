@@ -24,10 +24,10 @@ namespace Mlf.MyTime
         
         public static float TimeSpeed = 1;//multiply the delta time
 
-        public static float timeInHour = 2;//run time;
-        public static int hoursInDay = 2;
-        public static int daysInMonth = 2;
-        public static int monthsInYear = 2;
+        public static float TimeInHour = 2;//run time;
+        public static int HoursInDay = 2;
+        public static int DaysInMonth = 2;
+        public static int MonthsInYear = 2;
 
 
         public static float DeltaTime;
@@ -67,35 +67,35 @@ namespace Mlf.MyTime
             ElapsedTime += DeltaTime;
 
             Second += DeltaTime;
-            if(Second >= timeInHour)
+            if(Second >= TimeInHour)
             {
                 Hour += 1;
-                Second -= timeInHour;
-                if(Hour < hoursInDay)
+                Second -= TimeInHour;
+                if(Hour < HoursInDay)
                     OnHourChanged?.Invoke(Hour);
             }
-            if(Hour >= hoursInDay)
+            if(Hour >= HoursInDay)
             {
                 Day += 1;
-                Hour -= hoursInDay;
+                Hour -= HoursInDay;
                 OnHourChanged?.Invoke(Hour);
                 
-                if(Day < daysInMonth)
+                if(Day < DaysInMonth)
                     OnDayChanged?.Invoke(Day);
             }
-            if (Day >= daysInMonth)
+            if (Day >= DaysInMonth)
             {
                 Month += 1;
-                Day -= daysInMonth;
+                Day -= DaysInMonth;
                 OnDayChanged?.Invoke(Day);
 
-                if(Month < monthsInYear)
+                if(Month < MonthsInYear)
                     OnMonthChanged?.Invoke(Month);
             }
-            if(Month >= monthsInYear)
+            if(Month >= MonthsInYear)
             {
                 Year += 1;
-                Month -= monthsInYear;
+                Month -= MonthsInYear;
                 OnMonthChanged?.Invoke(Month);
                 OnYearChanged?.Invoke(Year);
             }

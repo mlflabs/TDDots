@@ -9,25 +9,25 @@ namespace Mlf.Brains.States
 
     public struct WanderScore : IComponentData
     {
-        public float value;
-        public float getValue() => value;
+        public float Value;
+        public float GETValue() => Value;
     }
 
     public struct WanderState : IComponentData
     {
-        public float defaultNeed;
+        public float DefaultNeed;
     }
 
 
     [UpdateBefore(typeof(StateSelectionSystem))]
     class WanderManagementSystem : SystemBase
     {
-        EndSimulationEntityCommandBufferSystem endSimulationEcbSystem;
+        EndSimulationEntityCommandBufferSystem _endSimulationEcbSystem;
 
         protected override void OnCreate()
         {
             base.OnCreate();
-            endSimulationEcbSystem =
+            _endSimulationEcbSystem =
               World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
@@ -35,7 +35,7 @@ namespace Mlf.Brains.States
         {
 
             float deltaTime = Time.DeltaTime;
-            var ecb = endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
+            var ecb = _endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
             /*
             Entities
                .WithName("WanderScoreSystem")
@@ -64,16 +64,16 @@ namespace Mlf.Brains.States
                {
 
 
-                   if (completeTag.progress == StateCompleteProgress.removingOldStateCurrentTag)
+                   if (completeTag.Progress == StateCompleteProgress.removingOldStateCurrentTag)
                    {
                        Debug.Log("Hunger, removeing old tag");
-                       if (currentState.state == BrainStates.Wander)
+                       if (currentState.State == BrainStates.Wander)
                            ecb.RemoveComponent<WanderStateCurrent>(entityInQueryIndex, entity);
 
                    }
-                   else if (completeTag.progress == StateCompleteProgress.loadingNewState)
+                   else if (completeTag.Progress == StateCompleteProgress.loadingNewState)
                    {
-                       if (currentState.state == BrainStates.Wander)
+                       if (currentState.State == BrainStates.Wander)
                        {
                            Debug.Log("Loading Wander State");
                            ecb.AddComponent<WanderStateCurrent>(entityInQueryIndex, entity);
@@ -81,24 +81,25 @@ namespace Mlf.Brains.States
 
 
                    }
-                   else if (completeTag.progress == StateCompleteProgress.choosingNewState)
+                   else if (completeTag.Progress == StateCompleteProgress.choosingNewState)
                    {
 
-                       score.value = ScoreUtils.calculateDefaultScore(state.defaultNeed);
-                       if (score.value > currentState.score)
+                       score.Value = ScoreUtils.CalculateDefaultScore(state.DefaultNeed);
+                       if (score.Value > currentState.Score)
                        {
-                           currentState.score = score.value;
-                           currentState.state = BrainStates.Wander;
+                           currentState.Score = score.Value;
+                           currentState.State = BrainStates.Wander;
+                           Debug.Log($"Score Wander::: {currentState.Score}, {currentState.State}");
                        }
 
-                       Debug.Log($"Score Wander::: {currentState.score}, {currentState.state}");
+                       
                    }
 
 
 
                }).Schedule(Dependency);
             Dependency = job2;
-            endSimulationEcbSystem.AddJobHandleForProducer(Dependency);
+            _endSimulationEcbSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }

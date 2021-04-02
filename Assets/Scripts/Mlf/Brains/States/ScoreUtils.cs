@@ -2,7 +2,7 @@
 {
     public static class ScoreUtils
     {
-        public static float calculateDefaultScore(float needValue)
+        public static float CalculateDefaultScore(float needValue)
         {
             return needValue;
         }

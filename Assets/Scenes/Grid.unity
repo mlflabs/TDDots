@@ -1062,7 +1062,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainMapContainer: {fileID: 0}
   secondaryMapContainer: {fileID: 0}
-  spritePrefab: {fileID: 1278591365091540497, guid: a322b57c15762a84dafa603b1e3ef898, type: 3}
+  SpriteSortingLayer: 3
 --- !u!114 &751906847
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10832,7 +10832,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 9.850086
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

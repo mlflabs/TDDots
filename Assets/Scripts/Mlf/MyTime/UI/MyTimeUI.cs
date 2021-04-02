@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Mlf.MyTime
@@ -11,11 +12,11 @@ namespace Mlf.MyTime
     public class MyTimeUI : MonoBehaviour
     {
 
-        public TextMeshProUGUI TMPTime;
-        public TextMeshProUGUI TMPHour;
-        public TextMeshProUGUI TMPDay;
-        public TextMeshProUGUI TMPMonth;
-        public TextMeshProUGUI TMPYear;
+        [FormerlySerializedAs("TMPTime")] public TextMeshProUGUI tmpTime;
+        [FormerlySerializedAs("TMPHour")] public TextMeshProUGUI tmpHour;
+        [FormerlySerializedAs("TMPDay")] public TextMeshProUGUI tmpDay;
+        [FormerlySerializedAs("TMPMonth")] public TextMeshProUGUI tmpMonth;
+        [FormerlySerializedAs("TMPYear")] public TextMeshProUGUI tmpYear;
 
 
 
@@ -23,41 +24,41 @@ namespace Mlf.MyTime
         // Start is called before the first frame update
         void Start()
         {
-            TimeSystem.OnHourChanged += onHourChanged;
-            TimeSystem.OnDayChanged += onDayChanged;
-            TimeSystem.OnMonthChanged += onMonthChanged;
-            TimeSystem.OnYearChanged += onYearChanged;
+            TimeSystem.OnHourChanged += ONHourChanged;
+            TimeSystem.OnDayChanged += ONDayChanged;
+            TimeSystem.OnMonthChanged += ONMonthChanged;
+            TimeSystem.OnYearChanged += ONYearChanged;
         }
 
-        private void onYearChanged(int value)
+        private void ONYearChanged(int value)
         {
-            if (TMPYear == null) return;
-            TMPYear.SetText($"Year: {value}");
+            if (tmpYear == null) return;
+            tmpYear.SetText($"Year: {value}");
         }
 
-        private void onMonthChanged(int value)
+        private void ONMonthChanged(int value)
         {
-            if (TMPMonth == null) return;
-            TMPMonth.SetText($"Month: {value}");
+            if (tmpMonth == null) return;
+            tmpMonth.SetText($"Month: {value}");
         }
 
-        private void onDayChanged(int value)
+        private void ONDayChanged(int value)
         {
-            if (TMPDay == null) return;
-            TMPDay.SetText($"Day: {value}");
+            if (tmpDay == null) return;
+            tmpDay.SetText($"Day: {value}");
         }
 
-        private void onHourChanged(int value)
+        private void ONHourChanged(int value)
         {
-            if (TMPHour == null) return;
-            TMPHour.SetText($"Hour: {value}");
+            if (tmpHour == null) return;
+            tmpHour.SetText($"Hour: {value}");
         }
 
         // Update is called once per frame
         void Update()
         {
-            if (TMPTime == null) return;
-            TMPTime.SetText($"Time: {TimeSystem.Second}");
+            if (tmpTime == null) return;
+            tmpTime.SetText($"Time: {TimeSystem.Second}");
         }
     }
 

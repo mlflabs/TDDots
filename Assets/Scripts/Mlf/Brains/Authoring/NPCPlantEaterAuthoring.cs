@@ -9,9 +9,9 @@ using UnityEngine;
 
 namespace Mlf.Brains.Authoring.NPCFriend
 {
-    public class NPCPlantEaterAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class NpcPlantEaterAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     {
-        public NPCPlantEaterSO so;
+        public NpcPlantEaterSo so;
 
 
         public void Convert(Entity entity, EntityManager dstManager,
@@ -22,8 +22,8 @@ namespace Mlf.Brains.Authoring.NPCFriend
 
             dstManager.AddComponentData(entity, new MoveActionData
             {
-                destination = new float2(transform.position.x, transform.position.y),
-                moveSpeed = 2f
+                Destination = new float2(transform.position.x, transform.position.y),
+                MoveSpeed = 2f
             }); ;
 
             
@@ -44,11 +44,11 @@ namespace Mlf.Brains.Authoring.NPCFriend
 
             // wander
             dstManager.AddComponentData(entity, new WanderDefaultSystemTag { });
-            dstManager.AddComponentData(entity, new WanderScore { value = 0 });
+            dstManager.AddComponentData(entity, new WanderScore { Value = 0 });
             dstManager.AddComponentData(entity,
-                new WanderState { defaultNeed = so.wander.wanderDefaultScore });
+                new WanderState { DefaultNeed = so.wander.wanderDefaultScore });
             dstManager.AddComponentData(entity,
-                new WanderData { maxDistance = 5 });
+                new WanderData { MAXDistance = 5 });
 
 
 
@@ -56,19 +56,19 @@ namespace Mlf.Brains.Authoring.NPCFriend
             int userid = NpcManagerSystem.AddNpc(entity, so.userId, map);
             so.userId = userid;
 
-            dstManager.AddComponentData(entity, new NpcData { userId = so.userId });
+            dstManager.AddComponentData(entity, new NpcData { UserId = so.userId });
             //dstManager.AddComponentData(entity, new MapItemOwned { });
 
 
 
             // hunger
             dstManager.AddComponentData(entity, new HungerDefaultSystemTag { });
-            dstManager.AddComponentData(entity, new HungerScore { value = 0 });
+            dstManager.AddComponentData(entity, new HungerScore { Value = 0 });
             dstManager.AddComponentData(entity, 
-                new HungerState { value = so.hunger.startingHunger });
+                new HungerState { Value = so.hunger.startingHunger });
             dstManager.AddComponentData(entity, 
-                new HungerData { hungerLPS = so.hunger.hungerLPS,
-                                 hungerThreshold = so.hunger.hungerThreshold});
+                new HungerData { HungerLps = so.hunger.hungerLps,
+                                 HungerThreshold = so.hunger.hungerThreshold});
 
             /*
             // thirst

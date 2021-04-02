@@ -15,11 +15,11 @@ namespace Mlf.Brains.States
 
     public struct WanderStateCurrent : IComponentData
     {
-        public byte state;
+        public byte State;
 
-        public static WanderStateCurrent getNewState()
+        public static WanderStateCurrent GETNewState()
         {
-            return new WanderStateCurrent { state = 0 };
+            return new WanderStateCurrent { State = 0 };
         }
     }
 
@@ -27,13 +27,13 @@ namespace Mlf.Brains.States
 
     class WanderStateSystem : SystemBase
     {
-        protected EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
+        protected EndSimulationEntityCommandBufferSystem MEndSimulationEcbSystem;
 
         protected override void OnCreate()
         {
             base.OnCreate();
 
-            m_EndSimulationEcbSystem = World
+            MEndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
         }
@@ -68,6 +68,7 @@ namespace Mlf.Brains.States
                 Entities
                     .WithSharedComponentFilter(mapIds[m])
                     .WithName("DefaultWanderStateSystem")
+                    .WithReadOnly(cells)
                     .ForEach((
                              int nativeThreadIndex,
                              ref WanderStateCurrent wanderState,
@@ -79,60 +80,57 @@ namespace Mlf.Brains.States
                              {
                                  //Debug.Log("-wander000000");
                                  //Debug.Log($"Wander State: {wanderState.state} Finished: {completeProgressData.finished}");
-                                 if (wanderState.state == 0)
+                                 if (wanderState.State == 0)
                                  {
                                      //Debug.Log("Wander State 2");
 
                                      var random = randomArray[nativeThreadIndex];
                                      int2 randomLocation = new int2(-1, -1);
                                      int gridIndex = 0;
-                                     int2 currentMapPosition = map.getGridPosition(transform.Position);
-                                     moveActionData.reset();
+                                     int2 currentMapPosition = map.GETGridPosition(transform.Position);
+                                     moveActionData.Reset();
 
-                                     while (!moveActionData.path.hasPath())
+                                     while (!moveActionData.Path.HasPath())
                                      {
                                          //Debug.Log($"MinMax: {wanderData.maxDistance} ");
                                          //Debug.Log($"Current Map Position:: {currentMapPosition.x}, {currentMapPosition.y} ");
                                          //Debug.Log($"Transform:: {transform.Position}, {transform.Position.x}, {transform.Position.z}");
                                          randomLocation = currentMapPosition + new int2(
-                                             random.NextInt(wanderData.maxDistance * -1, wanderData.maxDistance),
-                                             random.NextInt(wanderData.maxDistance * -1, wanderData.maxDistance));
+                                             random.NextInt(wanderData.MAXDistance * -1, wanderData.MAXDistance),
+                                             random.NextInt(wanderData.MAXDistance * -1, wanderData.MAXDistance));
 
 
-                                         if (randomLocation.x < 1 || randomLocation.x >= map.gridSize.x - 1 ||
-                                             randomLocation.y < 1 || randomLocation.y >= map.gridSize.y - 1)
+                                         if (randomLocation.x < 1 || randomLocation.x >= map.GridSize.x - 1 ||
+                                             randomLocation.y < 1 || randomLocation.y >= map.GridSize.y - 1)
                                          {
 
                                          }
                                          else
                                          {
                                              //Debug.Log("Wander State Found Path*****************");
-                                             gridIndex = map.getIndex(randomLocation);
-                                             PathData path = UtilsPath.findPath(
+                                             gridIndex = map.GETIndex(randomLocation);
+                                             PathData path = UtilsPath.FindPath(
                                                  in currentMapPosition,
                                                  in randomLocation,
                                                  //in groundTypeReferences,
                                                  in cells,
                                                  in map);
                                              //Debug.Log($"Random Location:: {randomLocation.x},{randomLocation.y} ");
-                                             moveActionData.loadPath(
-                                                 in path,
-                                                 in randomLocation,
-                                                 in map);
+                                             moveActionData.LoadPath(in path, in map);
                                          }
                                      }
 
 
                                      //Debug.Log($"****************** New Wander Destination::: {moveActionData.destination} ");
 
-                                     wanderState.state = 1;
+                                     wanderState.State = 1;
 
                                  } // state  = 0
-                                 else if (wanderState.state == 1)
+                                 else if (wanderState.State == 1)
                                  {
                                      //Debug.Log($"Wander State 3 {moveActionData.finished}");
-                                     if (moveActionData.finished)
-                                         currentState.finished = true;
+                                     if (moveActionData.Finished)
+                                         currentState.Finished = true;
                                  }
 
 

@@ -4,7 +4,7 @@ namespace Mlf.Utils
 {
     public class UtilsText
     {
-        public const int sortingOrderDefault = 5000;
+        public const int SortingOrderDefault = 5000;
 
         // Create Text in the World
         public static TextMesh CreateWorldText(string text,
@@ -14,7 +14,7 @@ namespace Mlf.Utils
                                                 Color? color = null,
                                                 TextAnchor textAnchor = TextAnchor.UpperLeft,
                                                 TextAlignment textAlignment = TextAlignment.Left,
-                int sortingOrder = sortingOrderDefault)
+                int sortingOrder = SortingOrderDefault)
         {
             if (color == null) color = Color.white;
             //parent.localScale = new Vector3(1f, 1f, 1f);

@@ -8,9 +8,9 @@ using UnityEngine;
 
 namespace Mlf.Brains.Authoring.NPCFriend
 {
-    public class NPCFriendAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    public class NpcFriendAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     {
-        public NpcFriendSO so;
+        public NpcFriendSo so;
 
 
         public void Convert(Entity entity, EntityManager dstManager,
@@ -19,8 +19,8 @@ namespace Mlf.Brains.Authoring.NPCFriend
 
             dstManager.AddComponentData(entity, new MoveActionData
             {
-                destination = new float2(transform.position.x, transform.position.y),
-                moveSpeed = 2f
+                Destination = new float2(transform.position.x, transform.position.y),
+                MoveSpeed = 2f
             }); ;
 
             
@@ -56,11 +56,11 @@ namespace Mlf.Brains.Authoring.NPCFriend
 
             // wander
             dstManager.AddComponentData(entity, new WanderDefaultSystemTag { });
-            dstManager.AddComponentData(entity, new WanderScore { value = 0 });
+            dstManager.AddComponentData(entity, new WanderScore { Value = 0 });
             dstManager.AddComponentData(entity,
-                new WanderState { defaultNeed = so.wander.wanderDefaultScore });
+                new WanderState { DefaultNeed = so.wander.wanderDefaultScore });
             dstManager.AddComponentData(entity,
-                new WanderData { maxDistance = 5 });
+                new WanderData { MAXDistance = 5 });
 
 
             // hunger

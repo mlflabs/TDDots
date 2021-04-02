@@ -10,19 +10,19 @@ namespace Mlf.Brains.States
     [UpdateBefore(typeof(StateSelectionSystem))]
     class ThirstManagementSystem : SystemBase
     {
-        EndSimulationEntityCommandBufferSystem endSimulationEcbSystem;
+        EndSimulationEntityCommandBufferSystem _endSimulationEcbSystem;
 
         protected override void OnCreate()
         {
             base.OnCreate();
-            endSimulationEcbSystem =
+            _endSimulationEcbSystem =
               World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate()
         {
             float deltaTime = Time.DeltaTime;
-            var ecb = endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
+            var ecb = _endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
             Entities
                 .WithName("ThirstrManagementSystem")
@@ -32,7 +32,7 @@ namespace Mlf.Brains.States
                 //calculate current thirst
 
 
-                state.value += data.thirstLPS * deltaTime;
+                state.Value += data.ThirstLps * deltaTime;
             }).Schedule();
 
 
@@ -49,17 +49,17 @@ namespace Mlf.Brains.States
                {
 
 
-                   if (completeTag.progress == StateCompleteProgress.removingOldStateCurrentTag)
+                   if (completeTag.Progress == StateCompleteProgress.removingOldStateCurrentTag)
                    {
                        Debug.Log("Thirst, removeing old tag");
-                       if (currentState.state == BrainStates.Drink)
+                       if (currentState.State == BrainStates.Drink)
                            ecb.RemoveComponent<ThirstStateCurrent>(entityInQueryIndex, entity);
 
                    }
-                   else if (completeTag.progress == StateCompleteProgress.loadingNewState)
+                   else if (completeTag.Progress == StateCompleteProgress.loadingNewState)
                    {
                        Debug.Log("Is it Thirst");
-                       if (currentState.state == BrainStates.Drink)
+                       if (currentState.State == BrainStates.Drink)
                        {
                            Debug.Log("============ Loading Thirst State");
                            ecb.AddComponent<ThirstStateCurrent>(entityInQueryIndex, entity);
@@ -67,53 +67,53 @@ namespace Mlf.Brains.States
 
 
                    }
-                   else if (completeTag.progress == StateCompleteProgress.choosingNewState)
+                   else if (completeTag.Progress == StateCompleteProgress.choosingNewState)
                    {
-                       if (state.skipNextStateSelection)
+                       if (state.SkipNextStateSelection)
                        {
-                           state.skipNextStateSelection = false;
-                           score.value = 0;
+                           state.SkipNextStateSelection = false;
+                           score.Value = 0;
                        }
-                       else if (state.value < data.thirstThreshold)//if not hungry just return 0
+                       else if (state.Value < data.ThirstThreshold)//if not hungry just return 0
                        {
-                           score.value = 0;
+                           score.Value = 0;
                        }
                        else
                        {
-                           score.value = ScoreUtils.calculateDefaultScore(state.value);
-                           if (score.value > currentState.score)
+                           score.Value = ScoreUtils.CalculateDefaultScore(state.Value);
+                           if (score.Value > currentState.Score)
                            {
-                               currentState.score = score.value;
-                               currentState.state = BrainStates.Drink;
+                               currentState.Score = score.Value;
+                               currentState.State = BrainStates.Drink;
                            }
                        }
 
-                       Debug.Log($"Score Thirst::: {currentState.score}, {currentState.state}");
+                       Debug.Log($"Score Thirst::: {currentState.Score}, {currentState.State}");
 
                    }
 
 
                    //calculate current thirst
                    Debug.Log("Updated thirstScore");
-                   if (state.skipNextStateSelection)
+                   if (state.SkipNextStateSelection)
                    {
-                       state.skipNextStateSelection = false;
-                       score.value = 0;
+                       state.SkipNextStateSelection = false;
+                       score.Value = 0;
 
                    }
-                   else if (state.value < data.thirstThreshold)  //if not thirsy just return 0
+                   else if (state.Value < data.ThirstThreshold)  //if not thirsy just return 0
                    {
-                       score.value = 0;
+                       score.Value = 0;
                        return;
                    }
 
                    //see if we have any food available
                    //
-                   score.value = ScoreUtils.calculateDefaultScore(state.value);
+                   score.Value = ScoreUtils.CalculateDefaultScore(state.Value);
                }).Schedule(Dependency);
 
             Dependency = job2;
-            endSimulationEcbSystem.AddJobHandleForProducer(Dependency);
+            _endSimulationEcbSystem.AddJobHandleForProducer(Dependency);
 
         }
     }

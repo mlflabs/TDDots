@@ -1,6 +1,7 @@
 ﻿using Mlf.Grid2d;
 using Mlf.Grid2d.Ecs;
 using Mlf.Map2d;
+using Mlf.MyTime;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
@@ -13,100 +14,100 @@ namespace Mlf.Brains.Actions
 
     public struct MoveActionData : IComponentData
     {
-        public bool finished;
-        public bool success;
-        public float moveSpeed;
-        public float2 destination;
-        public float2 nextDestinationPoint;
-        public PathData path;
-        public Cell currentCell;
+        public bool Finished;
+        public bool Success;
+        public float MoveSpeed;
+        public float2 Destination;
+        public float2 NextDestinationPoint;
+        public PathData Path;
+        public Cell CurrentCell;
 
 
 
         public void LoadFirstPoint(in GridDataStruct data)
         {
-            path.index = 1;
-            nextDestinationPoint = data.getWorldPositionCellCenter(in path.point1);
+            Path.Index = 1;
+            NextDestinationPoint = data.GETWorldPositionCellCenter(in Path.Point1);
 
         }
 
         public void LoadNextPoint(in GridDataStruct data)
         {
-            if (path.index == default) path.index = 1;
-            else path.index++;
-            if (path.index > 5)
+            if (Path.Index == default) Path.Index = 1;
+            else Path.Index++;
+            if (Path.Index > 5)
             {
                 Debug.Log("Path Index Out Of Range");
                 return;
             }
-            nextDestinationPoint = data.getWorldPositionCellCenter(path.GetCurrentPoint());
+            NextDestinationPoint = data.GETWorldPositionCellCenter(Path.GetCurrentPoint());
 
         }
 
-        public void setFinished()
+        public void SetFinished()
         {
-            path = new PathData();
-            finished = true;
-            success = true;
+            Path = new PathData();
+            Finished = true;
+            Success = true;
         }
 
-        public void setFailed()
+        public void SetFailed()
         {
-            path = new PathData();
-            finished = true;
-            success = false;
+            Path = new PathData();
+            Finished = true;
+            Success = false;
         }
 
-        public void loadPath(in PathData _path, in int2 _destination, in GridDataStruct data)
+        public void LoadPath(in PathData path, in GridDataStruct data)
         {
-            path = _path;
+            Path = path;
             LoadFirstPoint(in data);
-            destination = data.getWorldPositionCellCenter(in _destination);
-            finished = false;
+            Destination = data.GETWorldPositionCellCenter(in Path.FinalDestination);
+            Finished = false;
         }
 
-        public void updatePath(in PathData _path, in GridDataStruct data)
+        public void UpdatePath(in PathData path, in GridDataStruct data)
         {
-            path = _path;
+            Path = path;
             LoadFirstPoint(in data);
-            finished = false;
+            Finished = false;
         }
 
-        public void reset()
+        public void Reset()
         {
-            finished = false;
-            destination = float2.zero;
-            nextDestinationPoint = float2.zero;
-            path = new PathData();
+            Finished = false;
+            Destination = float2.zero;
+            NextDestinationPoint = float2.zero;
+            Path = new PathData();
         }
 
-        public float2 pointToWorldPosition(int point, in GridDataStruct data)
+        public float2 PointToWorldPosition(int point, in GridDataStruct data)
         {
-            if (point == 1 && !path.point1.Equals(int2.zero))
-                return data.getWorldPositionCellCenter(in path.point1);
-            if (point == 2 && !path.point2.Equals(int2.zero))
-                return data.getWorldPositionCellCenter(in path.point2);
-            if (point == 3 && !path.point3.Equals(int2.zero))
-                return data.getWorldPositionCellCenter(in path.point3);
-            if (point == 4 && !path.point4.Equals(int2.zero))
-                return data.getWorldPositionCellCenter(in path.point4);
-            if (point == 5 && !path.point5.Equals(int2.zero))
-                return data.getWorldPositionCellCenter(in path.point5);
+            if (point == 1 && !Path.Point1.Equals(int2.zero))
+                return data.GETWorldPositionCellCenter(in Path.Point1);
+            if (point == 2 && !Path.Point2.Equals(int2.zero))
+                return data.GETWorldPositionCellCenter(in Path.Point2);
+            if (point == 3 && !Path.Point3.Equals(int2.zero))
+                return data.GETWorldPositionCellCenter(in Path.Point3);
+            if (point == 4 && !Path.Point4.Equals(int2.zero))
+                return data.GETWorldPositionCellCenter(in Path.Point4);
+            if (point == 5 && !Path.Point5.Equals(int2.zero))
+                return data.GETWorldPositionCellCenter(in Path.Point5);
             return float2.zero;
         }
 
-        public float3 pointToWorldPosition(int point, in GridDataStruct data, float z = 0f)
+        public float3 PointToWorldPosition(int point, in GridDataStruct data, float z = 0f)
         {
-            if (point == 1 && !path.point1.Equals(int2.zero))
-                return data.getWorldPositionCellCenter(in path.point1, z);
-            if (point == 2 && !path.point2.Equals(int2.zero))
-                return data.getWorldPositionCellCenter(in path.point2, z);
-            if (point == 3 && !path.point3.Equals(int2.zero))
-                return data.getWorldPositionCellCenter(in path.point3, z);
-            if (point == 4 && !path.point4.Equals(int2.zero))
-                return data.getWorldPositionCellCenter(in path.point4, z);
-            if (point == 5 && !path.point5.Equals(int2.zero))
-                return data.getWorldPositionCellCenter(in path.point5, z);
+            if (point == 1 && !Path.Point1.Equals(int2.zero))
+                return data.GETWorldPositionCellCenter(in Path.Point1, z);
+            if (point == 2 && !Path.Point2.Equals(int2.zero))
+                return data.GETWorldPositionCellCenter(in Path.Point2, z);
+            if (point == 3 && !Path.Point3.Equals(int2.zero))
+                return data.GETWorldPositionCellCenter(in Path.Point3, z);
+            if (point == 4 && !Path.Point4.Equals(int2.zero))
+                return data.GETWorldPositionCellCenter(in Path.Point4, z);
+            if (point == 5 && !Path.Point5.Equals(int2.zero))
+                return data.GETWorldPositionCellCenter(in Path.Point5, z);
             return float3.zero;
         }
 
@@ -116,49 +117,50 @@ namespace Mlf.Brains.Actions
 
     public struct PathData
     {
-        public sbyte index;
-        public sbyte length;
-        public int2 point1;
-        public int2 point2;
-        public int2 point3;
-        public int2 point4;
-        public int2 point5;
+        public sbyte Index;
+        public sbyte Length;
+        public int2 FinalDestination;
+        public int2 Point1;
+        public int2 Point2;
+        public int2 Point3;
+        public int2 Point4;
+        public int2 Point5;
 
-        public bool hasPath()
+        public bool HasPath()
         {
             //in path all points should be different, so if same, they are default values
-            return (!point1.Equals(point2));
+            return (!Point1.Equals(Point2));
         }
 
 
         public int2 GetCurrentPoint()
         {
-            if (index == default)
-                index = 1;
+            if (Index == default)
+                Index = 1;
 
-            if (index == 1) return point1;
-            if (index == 2) return point2;
-            if (index == 3) return point3;
-            if (index == 4) return point4;
-            return point5;
+            if (Index == 1) return Point1;
+            if (Index == 2) return Point2;
+            if (Index == 3) return Point3;
+            if (Index == 4) return Point4;
+            return Point5;
 
         }
 
         public void resetPathToOnePoint(int point)
         {
-            if (point == 2) { point1 = point2; index = 1; }
-            else if (point == 3) { point1 = point3; index = 1; }
-            else if (point == 4) { point1 = point4; index = 1; }
-            else if (point == 5) { point1 = point5; index = 1; }
+            if (point == 2) { Point1 = Point2; Index = 1; }
+            else if (point == 3) { Point1 = Point3; Index = 1; }
+            else if (point == 4) { Point1 = Point4; Index = 1; }
+            else if (point == 5) { Point1 = Point5; Index = 1; }
         }
 
-        public void setByIndex(int i, int2 value)
+        public void SetByIndex(int i, int2 value)
         {
-            if (i == 1) point1 = value;
-            if (i == 2) point2 = value;
-            if (i == 3) point3 = value;
-            if (i == 4) point4 = value;
-            if (i == 5) point5 = value;
+            if (i == 1) Point1 = value;
+            if (i == 2) Point2 = value;
+            if (i == 3) Point3 = value;
+            if (i == 4) Point4 = value;
+            if (i == 5) Point5 = value;
 
 
         }
@@ -178,7 +180,7 @@ namespace Mlf.Brains.Actions
         protected override void OnUpdate()
         {
             //Debug.Log("Move000000000000000000000");
-            float deltaTime = Time.DeltaTime;
+            float deltaTime = TimeSystem.DeltaTime; // Time.DeltaTime;
             float distanceBuffer = 0.2f;
 
             List<MapComponentShared> mapIds = new List<MapComponentShared>();
@@ -189,6 +191,7 @@ namespace Mlf.Brains.Actions
             for (int m = 0; m < mapIds.Count; m++)
             {
                 GridDataStruct map;
+
                 NativeArray<Cell> cells;
 
                 if (mapIds[m].type == MapType.main)
@@ -202,9 +205,10 @@ namespace Mlf.Brains.Actions
                     cells = GridSystem.SecondaryMapCells;
                 }
 
-                Dependency = Entities
+                Entities
                 .WithName("MoveActionSystem")
                 //.WithReadOnly(maps)
+                .WithReadOnly(cells)
                 .WithSharedComponentFilter(mapIds[m])
                 .ForEach((Entity entity,
                             ref MoveActionData moveActionData,
@@ -216,13 +220,13 @@ namespace Mlf.Brains.Actions
 
 
                     //are we moving
-                    if (moveActionData.finished || !moveActionData.path.hasPath())
+                    if (moveActionData.Finished || !moveActionData.Path.HasPath())
                     {
                         //Debug.Log("Move1");
                         //not moving, finsiehd, no action required
                         return;
                     }
-                    else if (moveActionData.nextDestinationPoint.Equals(float2.zero))
+                    else if (moveActionData.NextDestinationPoint.Equals(float2.zero))
                     {
                         //Debug.Log("Move2");
                         //doesn't seem like there could be a path with 0,0,0 mid point......
@@ -232,7 +236,7 @@ namespace Mlf.Brains.Actions
                         //GridData gridData = getCurrentGridData(locationData.gridId, maps);
                         //if its zero, most likely we are very close to destination, just calculate the final distance
                         //we are close enought, just move to destination
-                        moveActionData.nextDestinationPoint = moveActionData.destination;
+                        moveActionData.NextDestinationPoint = moveActionData.Destination;
 
 
 
@@ -242,8 +246,8 @@ namespace Mlf.Brains.Actions
                         //Debug.Log("Move3");
                         //we are moving
                         //are we on the same cell as destination
-                        int2 gridPosition = map.getGridPosition(in translation.Value);
-                        Cell cell = map.getCell(in gridPosition, in cells);
+                        int2 gridPosition = map.GETGridPosition(in translation.Value);
+                        Cell cell = map.GETCell(in gridPosition, in cells);
 
                         //======================== use cell to check position, and change speed.
                         //======================== also if we changed cells, and height is different, 
@@ -255,7 +259,7 @@ namespace Mlf.Brains.Actions
                         Debug.Log($"Checking distance to next point:::: {distanceBuffer} " +
                             $"{math.distance(moveActionData.nextDestinationPoint, UtilsGrid.ToFloat2(translation.Value))}");
                         */
-                        if (math.distance(moveActionData.nextDestinationPoint,
+                        if (math.distance(moveActionData.NextDestinationPoint,
                                           UtilsGrid.ToFloat2(translation.Value)) < distanceBuffer)
                         {
 
@@ -264,7 +268,7 @@ namespace Mlf.Brains.Actions
                             //Debug.Log($"Translation.value:: {translation.Value}, {moveActionData.nextDestinationPoint} ");
                             //Debug.Log($"Index:: {moveActionData.path.index}");
                             //Debug.Log($"Going to next Point:: {moveActionData.path.GetCurrentPoint().x}, {moveActionData.path.GetCurrentPoint().y}");
-                            if (math.distance(moveActionData.destination,
+                            if (math.distance(moveActionData.Destination,
                                                 UtilsGrid.ToFloat2(translation.Value)) < distanceBuffer)
                             {
                                 //Debug.Log($"FINISHED!!!!!!!!!!!{moveActionData.destination.x}, {moveActionData.destination.y}");
@@ -272,7 +276,7 @@ namespace Mlf.Brains.Actions
                                 //not moving
                                 //finsih it
                                 //Debug.Log("Reached destination, finished");
-                                moveActionData.setFinished();
+                                moveActionData.SetFinished();
                                 return;
                             }
                             else
@@ -287,17 +291,17 @@ namespace Mlf.Brains.Actions
                         else
                         {
 
-                            int2 pos = map.getGridPosition(in translation.Value);
+                            int2 pos = map.GETGridPosition(in translation.Value);
                             //Debug.Log($"Current Pos:: {pos}");
-                            if (moveActionData.path.index > 3)
+                            if (moveActionData.Path.Index > 3)
                             {
 
-                                int2 end = map.getGridPosition(in moveActionData.destination);
+                                int2 end = map.GETGridPosition(in moveActionData.Destination);
 
 
                                 //Debug.Log($"MoveAction point and dest:: {pos}, {end}");
 
-                                PathData path = UtilsPath.findPath(
+                                PathData path = UtilsPath.FindPath(
                                     in pos, 
                                     in end,
                                     //in groundTypeReferences, 
@@ -305,22 +309,22 @@ namespace Mlf.Brains.Actions
                                     in map);
                                 //Debug.Log($"Path 1: {path.point1}, {translation.Value}");
 
-                                moveActionData.updatePath(in path, in map);
+                                moveActionData.UpdatePath(in path, in map);
                                 //Debug.Log($"MoveActionSystem->New Path::: {path}");
-                                if (moveActionData.path.hasPath())
+                                if (moveActionData.Path.HasPath())
                                 {
                                     moveActionData.LoadFirstPoint(in map);
                                 }
                                 else
                                 {
                                     Debug.Log("Couldn't reach destination, failed");
-                                    moveActionData.setFailed();
+                                    moveActionData.SetFailed();
                                 }
                             }
                             else
                             {
-                                float3 dest = new float3(moveActionData.nextDestinationPoint.x,
-                                                         moveActionData.nextDestinationPoint.y,
+                                float3 dest = new float3(moveActionData.NextDestinationPoint.x,
+                                                         moveActionData.NextDestinationPoint.y,
                                                          translation.Value.z);
                                 float3 moveDir = math.normalizesafe(dest - translation.Value);
                                 //rotation.Value = quaternion.LookRotation(moveDir, new float2(0, 0));
@@ -329,7 +333,7 @@ namespace Mlf.Brains.Actions
                                 //float rotSpeed = deltaTime * moveActionData.moveSpeed;
                                 //quaternion smoothRot = math.slerp(rotation.Value, rot, rotSpeed);
                                 //Debug.Log($"Move Data ADDED: {moveDir * moveActionData.moveSpeed * deltaTime}:::: speed:: {moveActionData.moveSpeed*deltaTime}");
-                                translation.Value += moveDir * moveActionData.moveSpeed * deltaTime;
+                                translation.Value += moveDir * moveActionData.MoveSpeed * deltaTime;
                                 //If draw lines, 
                                 Debug.DrawLine(translation.Value, dest);
                                 //Debug.Log($"Moving::: {translation.Value}");
@@ -338,12 +342,12 @@ namespace Mlf.Brains.Actions
                                 for (int i = 2; i < 5; i++)
                                 {
                                     //Debug.Log($"{moveActionData.pointToWorldPosition(i, maps[mapId].cellSize)}");
-                                    if (moveActionData.pointToWorldPosition(i + 1, in map).Equals(float2.zero))
+                                    if (moveActionData.PointToWorldPosition(i + 1, in map).Equals(float2.zero))
                                         break;
 
                                     Debug.DrawLine(
-                                        moveActionData.pointToWorldPosition(i, in map, 0),
-                                        moveActionData.pointToWorldPosition(i + 1, in map, 0));
+                                        moveActionData.PointToWorldPosition(i, in map, 0),
+                                        moveActionData.PointToWorldPosition(i + 1, in map, 0));
                                 }
 
 
@@ -355,7 +359,7 @@ namespace Mlf.Brains.Actions
 
 
                     //}).Run();
-                }).Schedule(Dependency);
+                }).Schedule();
 
             }
         }

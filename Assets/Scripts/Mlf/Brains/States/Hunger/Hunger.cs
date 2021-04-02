@@ -10,6 +10,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using ItemType = Mlf.Npc.ItemType;
 
 namespace Mlf.Brains.States
 {
@@ -25,19 +26,19 @@ namespace Mlf.Brains.States
     [UpdateBefore(typeof(StateSelectionSystem))]
     class HungerManagementSystem : SystemBase
     {
-        EndSimulationEntityCommandBufferSystem endSimulationEcbSystem;
+        EndSimulationEntityCommandBufferSystem _endSimulationEcbSystem;
 
         protected override void OnCreate()
         {
             base.OnCreate();
-            endSimulationEcbSystem =
+            _endSimulationEcbSystem =
               World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate()
         {
             float deltaTime = Time.DeltaTime;
-            var ecb = endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
+            var ecb = _endSimulationEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
             Entities
                 .WithName("HungerManagementSystem")
@@ -48,7 +49,7 @@ namespace Mlf.Brains.States
                 //calculate current hunger
 
 
-                state.value += data.hungerLPS * deltaTime;
+                state.Value += data.HungerLps * deltaTime;
             }).Schedule();
 
 
@@ -65,16 +66,18 @@ namespace Mlf.Brains.States
                {
 
 
-                   if (completeTag.progress == StateCompleteProgress.removingOldStateCurrentTag)
+                   if (completeTag.Progress == StateCompleteProgress.removingOldStateCurrentTag)
                    {
                        Debug.Log("Hunger, removeing old tag");
-                       if (currentState.state == BrainStates.Eat)
+                       if (currentState.State == BrainStates.Eat)
+                       {                    
                            ecb.RemoveComponent<HungerStateCurrent>(entityInQueryIndex, entity);
+                       }
 
                    }
-                   else if (completeTag.progress == StateCompleteProgress.loadingNewState)
+                   else if (completeTag.Progress == StateCompleteProgress.loadingNewState)
                    {
-                       if (currentState.state == BrainStates.Eat)
+                       if (currentState.State == BrainStates.Eat)
                        {
                            Debug.Log("Loading Hunger State");
                            ecb.AddComponent<HungerStateCurrent>(entityInQueryIndex, entity);
@@ -82,30 +85,30 @@ namespace Mlf.Brains.States
                        }
 
                    }
-                   else if (completeTag.progress == StateCompleteProgress.choosingNewState)
+                   else if (completeTag.Progress == StateCompleteProgress.choosingNewState)
                    {
-                       Debug.LogWarning($"HungerState Scores::: {state.value}, Threshold:: {data.hungerThreshold}");
-                       if (state.skipNextStateSelection)
+                       Debug.LogWarning($"HungerState Scores::: {state.Value}, Threshold:: {data.HungerThreshold}");
+                       if (state.SkipNextStateSelection)
                        {
-                           state.skipNextStateSelection = false;
-                           score.value = 0;
+                           state.SkipNextStateSelection = false;
+                           score.Value = 0;
                        }
-                       else if (state.value < data.hungerThreshold)//if not hungry just return 0
+                       else if (state.Value < data.HungerThreshold)//if not hungry just return 0
                        {
-                           score.value = 0;
+                           score.Value = 0;
                        }
                        else
                        {
-                           Debug.LogWarning($"Hunger State Value:: {state.value}");
-                           score.value = ScoreUtils.calculateDefaultScore(state.value);
-                           if (score.value > currentState.score)
+                           Debug.LogWarning($"Hunger State Value:: {state.Value}");
+                           score.Value = ScoreUtils.CalculateDefaultScore(state.Value);
+                           if (score.Value > currentState.Score)
                            {
-                               currentState.score = score.value;
-                               currentState.state = BrainStates.Eat;
+                               currentState.Score = score.Value;
+                               currentState.State = BrainStates.Eat;
                            }
                        }
 
-                       Debug.Log($"Score Hunger::: {currentState.score}, {currentState.state}");
+                       Debug.Log($"Score Hunger::: {currentState.Score}, {currentState.State}");
 
                    }
 
@@ -113,7 +116,7 @@ namespace Mlf.Brains.States
 
                }).Schedule(Dependency);
             Dependency = job2;
-            endSimulationEcbSystem.AddJobHandleForProducer(Dependency);
+            _endSimulationEcbSystem.AddJobHandleForProducer(Dependency);
 
 
         }
@@ -140,15 +143,16 @@ namespace Mlf.Brains.States
         NoFoodSource, Finished
     }
 
-    [UpdateBefore(typeof(NpcOwnershipSystem))]
+    //[UpdateBefore(typeof(NpcOwnershipSystem))]
+    //[UpdateBefore(typeof(PlantGrowthSystem))]
     class HungerStateSystem : SystemBase
     {
-        private EventSystem eventSystem;
+        private EventSystem _eventSystem;
 
         protected override void OnCreate()
         {
             base.OnCreate();
-            eventSystem = World.DefaultGameObjectInjectionWorld
+            _eventSystem = World.DefaultGameObjectInjectionWorld
                 .GetOrCreateSystem<EventSystem>();
         }
 
@@ -158,7 +162,7 @@ namespace Mlf.Brains.States
         {
 
             var deltaTime = Time.DeltaTime;
-            var writer = eventSystem.CreateEventWriter<AskForItemOwnershipEvent>();
+            var writer = _eventSystem.CreateEventWriter<AskForItemOwnershipEvent>();
             //var groundTypeReferences = GridSystem.GroundTypeReferences;
 
 
@@ -193,6 +197,7 @@ namespace Mlf.Brains.States
                     .WithName("DefaultHungerStateSystem")
                     .WithAll<HungerDefaultSystemTag>()
                     .WithReadOnly(plantItems)
+                    .WithNativeDisableContainerSafetyRestriction(plantItems)
                     .WithReadOnly(cells)
                     .ForEach((
                             Entity entity,
@@ -204,10 +209,10 @@ namespace Mlf.Brains.States
                             ref NpcData npcData,
                             in LocalToWorld transform) =>
                     {
-                        if (hungerStateCurrent.state == HungerStates.FindFoodSource)
+                        if (hungerStateCurrent.State == HungerStates.FindFoodSource)
                         {
-                            Debug.Log($"Finding Food {hungerStateCurrent.state}");
-                            int2 currentMapPosition = map.getGridPosition(transform.Position);
+                            Debug.Log($"Finding Food {hungerStateCurrent.State}");
+                            int2 currentMapPosition = map.GETGridPosition(transform.Position);
                             PathData path;
                             int itemIndex = FindFoodSpot(currentMapPosition,
                                                         in plantItems,
@@ -217,89 +222,135 @@ namespace Mlf.Brains.States
 
                             if (itemIndex > -1)
                             {
-                                hungerStateCurrent.state = HungerStates.RequestFoodSource;
-                                hungerStateCurrent.itemPosIndex = itemIndex;
-                                hungerStateCurrent.itemType = ItemType.plant;
-                                //hungerStateCurrent.path = path;
+                                hungerStateCurrent.State = HungerStates.RequestFoodSource;
+                                hungerStateCurrent.ItemPosIndex = itemIndex;
+                                hungerStateCurrent.ItemType = ItemType.plant;
+                                hungerStateCurrent.Path = path;
                             }
                             else
                             {
                                 //we didn't find path
-                                hungerStateCurrent.state = HungerStates.NoFoodSource;
+                                hungerStateCurrent.State = HungerStates.NoFoodSource;
                                 //TODO show a negative thing, move state to higher number
                             }
 
 
 
                         } // state  = 0
-                        else if (hungerStateCurrent.state == HungerStates.RequestFoodSource)
+                        else if (hungerStateCurrent.State == HungerStates.RequestFoodSource)
                         {
-                            Debug.Log($"Requesting Food {hungerStateCurrent.state}");
+                            Debug.Log($"Requesting Food {hungerStateCurrent.State}");
 
 
                             //TODO: add other resource types
                             writer.Write(new AskForItemOwnershipEvent
                             {
-                                map = map.mapType,
-                                indexPos = hungerStateCurrent.itemPosIndex,
-                                userId = npcData.userId,
-                                entity = entity
+                                Map = map.MapType,
+                                IndexPos = hungerStateCurrent.ItemPosIndex,
+                                Type = hungerStateCurrent.ItemType,
+                                UserId = npcData.UserId,                                
                             });
-                            hungerStateCurrent.state = HungerStates.RequestFoodSource;
+                            hungerStateCurrent.State = HungerStates.CheckIfRequestFoodSourceSuccessful;
                         }
-                        else if (hungerStateCurrent.state == HungerStates.CheckIfRequestFoodSourceSuccessful)
+                        else if(hungerStateCurrent.State == HungerStates.CheckIfRequestFoodSourceSuccessful)
                         {
-                            if( plantItems[hungerStateCurrent.itemPosIndex].currentOwner == npcData.userId)
+                            if(plantItems[hungerStateCurrent.ItemPosIndex].CurrentOwner == npcData.UserId)
                             {
-                                npcData.itemOwned = hungerStateCurrent.itemPosIndex;
-                                npcData.itemType = hungerStateCurrent.itemType;
-                                hungerStateCurrent.state = HungerStates.GoToFoodSource;
+                                Debug.LogWarning($"Loading path to food {hungerStateCurrent.Path}, {map}");
+                                moveActionData.LoadPath(in hungerStateCurrent.Path, in map);
+                                hungerStateCurrent.State = HungerStates.GoToFoodSource;
+                                
+                            }
+                            else if(plantItems[hungerStateCurrent.ItemPosIndex].CurrentOwner == 0)
+                            {
+                                //do it one more time
+                                hungerStateCurrent.State = HungerStates.RequestFoodSource;
                             }
                             else
                             {
-                                hungerStateCurrent.state = HungerStates.FindFoodSource;
+                                //someone else has this, look for another
+                                hungerStateCurrent.State = HungerStates.FindFoodSource;
                             }
                         }
-                        else if (hungerStateCurrent.state == HungerStates.GoToFoodSource)
+                        else if (hungerStateCurrent.State == HungerStates.GoToFoodSource)
                         {
+                            Debug.Log("Going to food source");
+                            //Walking to food, keep checking if the item still is available
+                            if (plantItems.ContainsKey(hungerStateCurrent.ItemPosIndex))
+                            {
+                                //still there make sure its still ours
+                                //TODO
+                            }
+                            else
+                            {
+                                //Item not there
+                                //See if we are still hungry
+                                hungerStateCurrent.State = HungerStates.NoFoodSource;
+                            }
+
                             //Debug.Log($"Moving to item");
-                            if (moveActionData.finished && moveActionData.success)
+                            if (moveActionData.Finished && moveActionData.Success)
                             {
                                 Debug.Log("At Item, eating...");
-                                hungerStateCurrent.state = HungerStates.Eat;
+                                hungerStateCurrent.State = HungerStates.Eat;
                             }
-                            else if (moveActionData.finished)
+                            else if (moveActionData.Finished)
                             {
                                 Debug.Log("Move finisehd, but no success");
                                 //finisehd but faile
-                                hungerStateCurrent.state = HungerStates.NoFoodSource;
+                                hungerStateCurrent.State = HungerStates.NoFoodSource;
                             }
                         }
-                        else if (hungerStateCurrent.state == HungerStates.Eat)
+                        else if (hungerStateCurrent.State == HungerStates.Eat)
                         {
-                            Debug.Log("Eating, and finished");
+                            Debug.Log("**********************************Eating, and finished");
                             //reset, but need to figure out what food we are eating, how much nutritian
-                            hungerState.value = 0;
-                            currentState.finished = true;
-                            hungerStateCurrent.state = HungerStates.Finished;
+                            hungerState.Value = 0;
+                            currentState.Finished = true;
+                            hungerStateCurrent.State = HungerStates.Finished;
+
+                            //here clean up ownership
+                            writer.Write(new AskForItemOwnershipEvent
+                            {
+                                Map = map.MapType,
+                                IndexPos = hungerStateCurrent.ItemPosIndex,
+                                UserId = npcData.UserId,
+                                Type = ItemType.plant,
+                            });
+
+
                         }
-                        else if (hungerStateCurrent.state == HungerStates.NoFoodSource)
+                        else if (hungerStateCurrent.State == HungerStates.NoFoodSource)
                         {
                             Debug.Log("No Food");
                             //hungry, but no food source, show emoji, and move on
-                            currentState.finished = true;
-                            hungerState.skipNextStateSelection = true;
-                            hungerStateCurrent.state = HungerStates.Finished;
+                            currentState.Finished = true;
+                            hungerState.SkipNextStateSelection = true;
+                            hungerStateCurrent.State = HungerStates.Finished;
+
+                            //see if we need to cleanup ownership
                         }
 
 
                     }).Schedule();
 
-                eventSystem.AddJobHandleForProducer<AskForItemOwnershipEvent>(Dependency);
+                _eventSystem.AddJobHandleForProducer<AskForItemOwnershipEvent>(Dependency);
             }
 
 
         }
+
+
+        public static void EatItem(HungerStateCurrent hungerStateCurrent)
+        {
+            //what are we eating
+            if(hungerStateCurrent.ItemType == ItemType.plant)
+            {
+                PlantItem item;
+            }
+        }
+
+
 
         public static int FindFoodSpot(
             in int2 currentMapPosition,
@@ -315,7 +366,7 @@ namespace Mlf.Brains.States
 
             path = new PathData();
             int currentLowerstId = -1;
-            while (!path.hasPath())
+            while (!path.HasPath())
             {
                 NativeList<int> checking = new NativeList<int>(Allocator.Temp);
                 var keys = plantItems.GetKeyArray(Allocator.Temp);
@@ -330,8 +381,8 @@ namespace Mlf.Brains.States
                 for (int i = 0; i < checking.Length; i++)
                 {
                     current = math.distance(currentMapPosition,
-                                            plantItems[checking[i]].pos);
-                    if (current < lowest && plantItems[checking[i]].currentOwner < 1)
+                                            plantItems[checking[i]].Pos);
+                    if (current < lowest && plantItems[checking[i]].CurrentOwner < 1)
                     {
                         lowest = current;
                         currentLowerstId = checking[i];
@@ -354,8 +405,8 @@ namespace Mlf.Brains.States
 
 
                 //see if we have a path
-                path = UtilsPath.findPath(in currentMapPosition,
-                                          plantItems[currentLowerstId].pos,
+                path = UtilsPath.FindPath(in currentMapPosition,
+                                          plantItems[currentLowerstId].Pos,
                                           //in groundTypeReferences,
                                           in cells,
                                           in map);

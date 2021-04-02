@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Mlf.Brains.States
 {
     [CreateAssetMenu(fileName = "HungerSO", menuName = "Mlf/Brains/States/HungerStateSO")]
-    public class HungerSO : ScriptableObject
+    public class HungerSo : ScriptableObject
     {
 
-        public float hungerLPS = 0.5f;
+        [FormerlySerializedAs("hungerLPS")] public float hungerLps = 0.5f;
         public float hungerThreshold = 50f;
 
         public float startingHunger = 0f;

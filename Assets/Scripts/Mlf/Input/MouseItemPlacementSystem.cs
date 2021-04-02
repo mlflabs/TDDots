@@ -24,9 +24,9 @@ namespace Mlf.Inputs
         //place building settings
         [SerializeField] bool placeBuilding = false;
         [SerializeField] private int2 buildingGridSize = new int2(1, 1);
-        float2 placeBuildingMouseStartPos;
-        float2 placeBuildingInitialPos; // at start of mouse move, button down
-        float2 placeBuildingPos;
+        float2 _placeBuildingMouseStartPos;
+        float2 _placeBuildingInitialPos; // at start of mouse move, button down
+        float2 _placeBuildingPos;
         [SerializeField] private float2 startPosition;
         [SerializeField] private float2 endPosition;
         [SerializeField] public float3 selectionAreaSize;
@@ -38,7 +38,7 @@ namespace Mlf.Inputs
 
 
         //EVENTS
-        public event Action<bool> onCanBuildChanged;
+        public event Action<bool> ONCanBuildChanged;
 
         /// <summary>
         /// ///////////Old
@@ -105,7 +105,7 @@ namespace Mlf.Inputs
 
 
 
-        public void stopBuildSetup()
+        public void StopBuildSetup()
         {
             placeBuilding = false;
             selectOverlay.SetActive(false);
@@ -223,9 +223,9 @@ namespace Mlf.Inputs
         }
 
 */
-        public void placeItem()
+        public void PlaceItem()
         {
-            float3 mousePos = getMousePosition();
+            float3 mousePos = GETMousePosition();
 
             
 
@@ -345,7 +345,7 @@ namespace Mlf.Inputs
 
 
         public float distance = 50f;
-        public float3 getMousePosition()
+        public float3 GETMousePosition()
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -362,7 +362,7 @@ namespace Mlf.Inputs
             return float3.zero;
         }
 
-        public float3 getMiddleScreenPosition()
+        public float3 GETMiddleScreenPosition()
         {
             Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
             RaycastHit hit;
